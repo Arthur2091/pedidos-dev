@@ -198,6 +198,34 @@
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 300; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* INSUMOS POR CATEGORÍA */
+  #viewInsumos { display: none; }
+  .ins-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .ins-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .ins-title { font-size: 18px; font-weight: 600; }
+  .ins-sub { font-size: 13px; color: var(--ink2); margin-top: 2px; }
+  .ins-search { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); outline: none; width: 220px; transition: border-color 0.15s; }
+  .ins-search:focus { border-color: var(--accent); }
+  .ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .ins-cat-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
+  .ins-cat-header { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .ins-cat-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .ins-cat-icon { font-size: 16px; }
+  .ins-cat-count { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink3); background: var(--surface2); padding: 2px 8px; border-radius: 999px; }
+  .ins-list { padding: 6px 0; max-height: 280px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .ins-list::-webkit-scrollbar { width: 4px; }
+  .ins-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .ins-row { display: flex; align-items: center; gap: 10px; padding: 7px 18px; transition: background 0.1s; border-bottom: 1px solid var(--border); }
+  .ins-row:last-child { border-bottom: none; }
+  .ins-row:hover { background: var(--surface2); }
+  .ins-name { flex: 1; font-size: 13px; color: var(--ink); }
+  .ins-prov { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+  .ins-price { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 600; color: var(--accent); min-width: 70px; text-align: right; }
+  .ins-price.no-price { color: var(--ink3); font-weight: 400; font-style: italic; }
+  .ins-empty { padding: 20px 18px; font-size: 13px; color: var(--ink3); font-style: italic; text-align: center; }
+  .ins-assign-btn { font-size: 11px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--ink3); cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+  .ins-assign-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
   /* RECETAS */
   #viewRecetas { display: none; }
   .rec-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
@@ -283,6 +311,7 @@
       <button class="nav-tab" data-view="precios" onclick="switchView('precios')">💲 <span>Precios</span></button>
       <button class="nav-tab" data-view="historial" onclick="switchView('historial')">🕒 <span>Historial</span></button>
       <button class="nav-tab" data-view="recetas" onclick="switchView('recetas')">👨‍🍳 <span>Recetas</span></button>
+      <button class="nav-tab" data-view="insumos" onclick="switchView('insumos')">🗂 <span>Insumos</span></button>
     </nav>
   </div>
   <span class="header-date" id="fecha-hdr"></span>
@@ -426,6 +455,20 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- INSUMOS VIEW -->
+<div id="viewInsumos">
+  <div class="ins-container">
+    <div class="ins-top">
+      <div>
+        <div class="ins-title">🗂 Insumos por categoría</div>
+        <div class="ins-sub">Todos los insumos organizados por uso en recetas</div>
+      </div>
+      <input class="ins-search" id="insSearch" type="text" placeholder="🔍 Buscar insumo..." oninput="filtrarInsumos(this.value)">
+    </div>
+    <div class="ins-grid" id="insGrid"></div>
+  </div>
+</div>
 
 <!-- RECETAS VIEW -->
 <div id="viewRecetas">
@@ -973,6 +1016,102 @@ window.renderRecetas = () => {
 };
 
 
+// ── INSUMOS POR CATEGORÍA ──
+const CATEGORIAS_RECETA = [
+  { id: 'lacteos',      label: 'Lácteos y huevos',        icon: '🥛' },
+  { id: 'harinas',      label: 'Harinas y secos',          icon: '🌾' },
+  { id: 'aceites',      label: 'Aceites y grasas',         icon: '🫙' },
+  { id: 'azucares',     label: 'Azúcares y endulzantes',   icon: '🍬' },
+  { id: 'carnes',       label: 'Carnes y proteínas',       icon: '🥩' },
+  { id: 'frutas',       label: 'Frutas y verduras',        icon: '🥦' },
+  { id: 'especias',     label: 'Especias y condimentos',   icon: '🌶' },
+  { id: 'bebidas',      label: 'Bebidas y licores',        icon: '🍾' },
+  { id: 'descartables', label: 'Descartables',             icon: '📦' },
+  { id: 'limpieza',     label: 'Limpieza',                 icon: '🧹' },
+  { id: 'otros',        label: 'Otros',                    icon: '📌' },
+];
+
+// insumoCategories: { "pid_idx": "categoria_id" }
+let insumoCategories = {};
+
+async function loadInsumoCategories() {
+  try {
+    const snap = await getDoc(doc(db, 'data', 'insumoCategories'));
+    if (snap.exists()) insumoCategories = snap.data();
+  } catch(e) {}
+}
+
+async function saveInsumoCategory(k, catId) {
+  insumoCategories[k] = catId;
+  try { await setDoc(doc(db, 'data', 'insumoCategories'), insumoCategories); } catch(e) {}
+}
+
+let insumosSearchTerm = '';
+
+window.renderInsumos = () => {
+  const grid = document.getElementById('insGrid');
+  grid.innerHTML = '';
+
+  // Flatten all products
+  const allInsumos = [];
+  PROVIDERS.forEach(p => {
+    p.products.forEach((prod, i) => {
+      const k = key(p.id, i);
+      const cat = insumoCategories[k] || 'otros';
+      const pr = prices[k];
+      allInsumos.push({ k, name: prod, prov: p.name, cat, pr });
+    });
+  });
+
+  // Filter by search
+  const filtered = insumosSearchTerm
+    ? allInsumos.filter(ins => ins.name.toLowerCase().includes(insumosSearchTerm.toLowerCase()) || ins.prov.toLowerCase().includes(insumosSearchTerm.toLowerCase()))
+    : allInsumos;
+
+  CATEGORIAS_RECETA.forEach(cat => {
+    const items = filtered.filter(ins => ins.cat === cat.id);
+
+    const card = document.createElement('div');
+    card.className = 'ins-cat-card';
+    card.innerHTML = `
+      <div class="ins-cat-header">
+        <span class="ins-cat-title"><span class="ins-cat-icon">${cat.icon}</span>${cat.label}</span>
+        <span class="ins-cat-count">${items.length}</span>
+      </div>
+      <div class="ins-list" id="inslist-${cat.id}">
+        ${items.length === 0
+          ? `<div class="ins-empty">Sin insumos asignados</div>`
+          : items.map(ins => `
+            <div class="ins-row">
+              <span class="ins-name">${ins.name}</span>
+              <span class="ins-prov">${ins.prov}</span>
+              <span class="ins-price ${ins.pr ? '' : 'no-price'}">${ins.pr ? '$' + Math.round(ins.pr).toLocaleString('es-AR') : 'sin precio'}</span>
+              <button class="ins-assign-btn" onclick="asignarCategoria('${ins.k}','${ins.name}')">mover</button>
+            </div>`).join('')}
+      </div>`;
+    grid.appendChild(card);
+  });
+};
+
+window.filtrarInsumos = (term) => {
+  insumosSearchTerm = term;
+  renderInsumos();
+};
+
+window.asignarCategoria = async (k, nombre) => {
+  const opts = CATEGORIAS_RECETA.map(c => `${c.icon} ${c.label}`).join('\n');
+  const actual = insumoCategories[k] || 'otros';
+  const catActual = CATEGORIAS_RECETA.find(c => c.id === actual);
+
+  const sel = prompt(`Asignar "${nombre}" a categoría:\n\n${CATEGORIAS_RECETA.map((c,i)=>`${i+1}. ${c.icon} ${c.label}`).join('\n')}\n\nIngresá el número (actual: ${catActual?.label || 'Otros'}):`);
+  if (!sel) return;
+  const idx = parseInt(sel) - 1;
+  if (idx < 0 || idx >= CATEGORIAS_RECETA.length) { showToast('⚠ Número inválido'); return; }
+  await saveInsumoCategory(k, CATEGORIAS_RECETA[idx].id);
+  showToast(`✓ "${nombre}" → ${CATEGORIAS_RECETA[idx].label}`);
+  renderInsumos();
+};
+
 async function init() {
   try {
     const snap = await getDoc(doc(db,'data','prices'));
@@ -985,6 +1124,7 @@ async function init() {
     await loadCustomProducts();
     await loadCustomProviders();
     await loadRecetas();
+    await loadInsumoCategories();
   } catch(e) { console.warn('Firebase offline, using local mode'); }
   buildFilterBar();
   buildCards();
@@ -999,9 +1139,11 @@ window.switchView = (view) => {
   document.getElementById('viewPrecios').style.display  = view==='precios'  ?'block':'none';
   document.getElementById('viewHistorial').style.display= view==='historial'?'block':'none';
   document.getElementById('viewRecetas').style.display  = view==='recetas'  ?'block':'none';
+  document.getElementById('viewInsumos').style.display  = view==='insumos'  ?'block':'none';
   document.getElementById('summaryBar').style.display   = view==='pedidos'  ?''    :'none';
   if(view==='historial') renderHistorial();
   if(view==='recetas') renderRecetas();
+  if(view==='insumos') renderInsumos();
 };
 
 // FILTER BAR
