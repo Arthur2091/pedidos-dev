@@ -813,6 +813,14 @@ function fmtPrice(p) { return p?`$${Number(p).toLocaleString('es-AR')}`:'—'; }
 function key(pid,idx) { return `${pid}_${idx}`; }
 function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
 
+// Búsqueda por múltiples palabras — "az sob" encuentra "Azucar en sobre"
+function multiMatch(text, term) {
+  if (!term.trim()) return true;
+  const words = term.toLowerCase().trim().split(/\s+/);
+  const t = text.toLowerCase();
+  return words.every(w => t.includes(w));
+}
+
 // ── NUEVO PROVEEDOR ──
 window.abrirModalNuevoProv = () => {
   document.getElementById('nprovNombre').value = '';
@@ -1091,11 +1099,10 @@ window.crearInsumoDesdeReceta = async () => {
 window.buscarInsumo = (term) => {
   const results = document.getElementById('ingSearchResults');
   if (!term.trim()) { results.style.display = 'none'; results.innerHTML = ''; return; }
-  const t = term.toLowerCase();
   const matches = [];
   PROVIDERS.forEach(p => {
     p.products.forEach((prod, i) => {
-      if (prod.toLowerCase().includes(t)) {
+      if (multiMatch(prod, term)) {
         matches.push({ pid: p.id, idx: i, nombre: prod, provName: p.name });
       }
     });
@@ -1561,7 +1568,7 @@ window.renderInsumos = () => {
 
   // Filter by search
   const filtered = insumosSearchTerm
-    ? allInsumos.filter(ins => ins.name.toLowerCase().includes(insumosSearchTerm.toLowerCase()) || ins.prov.toLowerCase().includes(insumosSearchTerm.toLowerCase()))
+    ? allInsumos.filter(ins => multiMatch(ins.name, insumosSearchTerm) || multiMatch(ins.prov, insumosSearchTerm))
     : allInsumos;
 
   CATEGORIAS_RECETA.forEach(cat => {
@@ -1772,8 +1779,7 @@ window.filtrarInsumos = (term) => {
   const createTerm = document.getElementById('insCreateTerm');
   if (!createBar) return;
   if (term.trim()) {
-    // Check if any insumo matches
-    const hasMatch = PROVIDERS.some(p => p.products.some(prod => prod.toLowerCase().includes(term.toLowerCase())));
+    const hasMatch = PROVIDERS.some(p => p.products.some(prod => multiMatch(prod, term)));
     if (!hasMatch) {
       createTerm.textContent = `"${term}"`;
       createBar.style.display = 'flex';
