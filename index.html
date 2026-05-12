@@ -574,9 +574,44 @@
         <div class="ins-title">🗂 Insumos por categoría</div>
         <div class="ins-sub">Todos los insumos organizados por uso en recetas</div>
       </div>
-      <input class="ins-search" id="insSearch" type="text" placeholder="🔍 Buscar insumo..." oninput="filtrarInsumos(this.value)">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="ins-search" id="insSearch" type="text" placeholder="🔍 Buscar insumo..." oninput="filtrarInsumos(this.value)"
+          onkeydown="if(event.key==='Escape'){this.value='';filtrarInsumos('')}">
+        <button onclick="abrirModalNuevoInsumo()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;border:none;background:var(--ink);color:#fff;cursor:pointer;white-space:nowrap">+ Nuevo</button>
+      </div>
+    </div>
+    <div id="insCreateBar" style="display:none;background:var(--accent-light);border-radius:10px;padding:10px 16px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:12px">
+      <span style="font-size:13px;color:var(--accent)">¿No encontrás <strong id="insCreateTerm"></strong>?</span>
+      <button onclick="crearInsumoDesdeSearch()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:7px 16px;border-radius:7px;border:none;background:var(--accent);color:#fff;cursor:pointer">+ Crear insumo</button>
     </div>
     <div class="ins-grid" id="insGrid"></div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO INSUMO -->
+<div class="rec-modal-overlay" id="nuevoInsumoOverlay">
+  <div style="background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:16px;animation:slideUp 0.2s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:16px;font-weight:600">Nuevo insumo</span>
+      <button class="modal-close" onclick="cerrarModalNuevoInsumo()">×</button>
+    </div>
+    <div>
+      <div class="rec-field-label">Nombre</div>
+      <input class="rec-field-input" id="niNombre" type="text" placeholder="Ej: Harina 000"
+        onkeydown="if(event.key==='Enter')document.getElementById('niProv').focus()">
+    </div>
+    <div>
+      <div class="rec-field-label">Proveedor</div>
+      <select class="rec-field-input" id="niProv" style="cursor:pointer"></select>
+    </div>
+    <div>
+      <div class="rec-field-label">Categoría</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="niCatGrid"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn-cancel-rec" onclick="cerrarModalNuevoInsumo()">Cancelar</button>
+      <button class="btn-save-rec" onclick="guardarNuevoInsumo()">Agregar insumo</button>
+    </div>
   </div>
 </div>
 
@@ -1595,9 +1630,87 @@ window.saveInsPresentation = async (k, nombre) => {
   showToast(`✓ Presentación guardada: ${qty} ${unit}`);
 };
 
+window.crearInsumoDesdeSearch = () => {
+  const term = document.getElementById('insSearch').value.trim();
+  abrirModalNuevoInsumo();
+  setTimeout(() => {
+    const input = document.getElementById('niNombre');
+    if (input) { input.value = term; input.select(); }
+  }, 150);
+};
+
+window.abrirModalNuevoInsumo = () => {
+  // Populate providers
+  const provSel = document.getElementById('niProv');
+  provSel.innerHTML = PROVIDERS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  // Populate categories
+  const catGrid = document.getElementById('niCatGrid');
+  catGrid.innerHTML = CATEGORIAS_RECETA.map(cat => `
+    <button class="cat-picker-btn" data-nicat="${cat.id}" onclick="selectNiCat('${cat.id}')">
+      <span style="font-size:16px">${cat.icon}</span>${cat.label}
+    </button>`).join('');
+  document.getElementById('niNombre').value = '';
+  document.getElementById('nuevoInsumoOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('niNombre').focus(), 100);
+};
+
+window.cerrarModalNuevoInsumo = () => {
+  document.getElementById('nuevoInsumoOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+window.selectNiCat = (catId) => {
+  document.querySelectorAll('[data-nicat]').forEach(b => b.classList.toggle('current', b.dataset.nicat === catId));
+};
+
+window.guardarNuevoInsumo = async () => {
+  const nombre = document.getElementById('niNombre').value.trim();
+  const pid = document.getElementById('niProv').value;
+  const catBtn = document.querySelector('[data-nicat].current');
+  if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
+  if (!catBtn) { showToast('⚠ Seleccioná una categoría'); return; }
+  const catId = catBtn.dataset.nicat;
+  const p = PROVIDERS.find(x => x.id === pid);
+  if (p.products.map(x => x.toLowerCase()).includes(nombre.toLowerCase())) {
+    showToast('⚠ Ya existe ese insumo en este proveedor'); return;
+  }
+  // Add to provider alphabetically
+  p.products.push(nombre);
+  p.products.sort((a,b) => a.localeCompare(b,'es',{sensitivity:'base'}));
+  await saveCustomProducts(pid, p.products);
+  // Assign category
+  const newIdx = p.products.indexOf(nombre);
+  const k = key(pid, newIdx);
+  await saveInsumoCategory(k, catId);
+  cerrarModalNuevoInsumo();
+  showToast(`✓ "${nombre}" agregado a ${p.name} en ${CATEGORIAS_RECETA.find(c=>c.id===catId)?.label}`);
+  renderInsumos();
+  // Rebuild pedidos and precios cards
+  rebuildPedidosCard(pid);
+  const plist = document.getElementById(`plist-${pid}`);
+  if (plist) plist.innerHTML = p.products.map((prod,i) => renderPrecioRow(pid, p.name, prod, i)).join('');
+  updatePrecioMeta(pid);
+};
+
 window.filtrarInsumos = (term) => {
   insumosSearchTerm = term;
   renderInsumos();
+  const createBar = document.getElementById('insCreateBar');
+  const createTerm = document.getElementById('insCreateTerm');
+  if (!createBar) return;
+  if (term.trim()) {
+    // Check if any insumo matches
+    const hasMatch = PROVIDERS.some(p => p.products.some(prod => prod.toLowerCase().includes(term.toLowerCase())));
+    if (!hasMatch) {
+      createTerm.textContent = `"${term}"`;
+      createBar.style.display = 'flex';
+    } else {
+      createBar.style.display = 'none';
+    }
+  } else {
+    createBar.style.display = 'none';
+  }
 };
 
 let catPickerKey = null;
@@ -2404,12 +2517,9 @@ init();
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (document.getElementById('recModalOverlay').classList.contains('open')) {
-      cerrarModalReceta();
-    }
-    if (document.getElementById('catPickerOverlay').classList.contains('open')) {
-      cerrarCatPicker();
-    }
+    if (document.getElementById('recModalOverlay').classList.contains('open')) cerrarModalReceta();
+    if (document.getElementById('catPickerOverlay').classList.contains('open')) cerrarCatPicker();
+    if (document.getElementById('nuevoInsumoOverlay')?.classList.contains('open')) cerrarModalNuevoInsumo();
   }
 });
 </script>
