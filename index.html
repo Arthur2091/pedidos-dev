@@ -361,29 +361,6 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div id="loginScreen" style="display:flex;position:fixed;inset:0;background:var(--ink);z-index:1000;align-items:center;justify-content:center;padding:24px">
-  <div style="background:var(--surface);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.3)">
-    <div style="font-size:40px;margin-bottom:12px">🛒</div>
-    <div style="font-size:22px;font-weight:600;letter-spacing:-0.5px;margin-bottom:6px">Sistema de Pedidos</div>
-    <div style="font-size:14px;color:var(--ink2);margin-bottom:36px">Iniciá sesión para continuar</div>
-    <button id="btnLoginGoogle" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:14px 20px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-bottom:12px">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Iniciar sesión con Google
-    </button>
-    <div style="font-size:12px;color:var(--ink3)">Solo usuarios autorizados pueden acceder</div>
-  </div>
-</div>
-
-<!-- ACCESS DENIED -->
-<div id="deniedScreen" style="display:none;position:fixed;inset:0;background:var(--ink);z-index:1000;align-items:center;justify-content:center;padding:24px">
-  <div style="background:var(--surface);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center">
-    <div style="font-size:40px;margin-bottom:16px">🚫</div>
-    <div style="font-size:20px;font-weight:600;margin-bottom:8px">Acceso no autorizado</div>
-    <div style="font-size:14px;color:var(--ink2);margin-bottom:24px" id="deniedMsg">Tu cuenta no tiene acceso.</div>
-    <button id="btnLogoutDenied" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:10px 24px;border-radius:10px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--ink)">Cerrar sesión</button>
-  </div>
-</div>
 <div id="loaderScreen" style="position:fixed;inset:0;background:var(--ink);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999">
   <div style="font-size:36px">🛒</div>
   <div style="color:#fff;font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif">Sistema de Pedidos</div>
@@ -408,12 +385,6 @@
       <button class="nav-tab" data-view="recetas" onclick="switchView('recetas')">👨‍🍳 <span>Recetas</span></button>
       <button class="nav-tab" data-view="insumos" onclick="switchView('insumos')">🗂 <span>Insumos</span></button>
     </nav>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-    <img id="userAvatar" src="" style="display:none;width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);object-fit:cover">
-    <span id="userInitial" style="display:none;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:600;align-items:center;justify-content:center"></span>
-    <span id="userName" style="font-size:12px;color:#aaa;font-family:'DM Mono',monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-    <button onclick="logoutAndReset()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">Salir</button>
   </div>
 </header>
 
@@ -619,7 +590,7 @@
     </div>
     <div>
       <div class="rec-field-label">Presentación <span style="font-weight:400;color:var(--ink3)">(opcional)</span></div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Cant." id="niPresQty"
           style="width:80px" onfocus="this.select()" oninput="updateNiEquiv()">
         <select class="ins-pres-unit" id="niPresUnit" onchange="updateNiEquiv()">
@@ -629,6 +600,9 @@
           <option value="ml">ml</option>
           <option value="u">u</option>
         </select>
+        <span style="color:var(--ink3);font-size:13px">$</span>
+        <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Precio" id="niPrecio"
+          style="width:100px" onfocus="this.select()" oninput="updateNiEquiv()">
         <span style="font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace" id="niEquiv"></span>
       </div>
     </div>
@@ -756,22 +730,18 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB76R4iR0eLPHz1n6BXbuC6JDeAgaUKC8I",
-  authDomain: "arthur-sistema-pedidos-dev.firebaseapp.com",
-  projectId: "arthur-sistema-pedidos-dev",
-  storageBucket: "arthur-sistema-pedidos-dev.firebasestorage.app",
-  messagingSenderId: "901390401278",
-  appId: "1:901390401278:web:bd11702dcb995f1abcefaf"
+  apiKey: "AIzaSyC_dkvixcRfzRMxXTAAxjcDuhbsMajApxI",
+  authDomain: "arthur-sistema-pedidos.firebaseapp.com",
+  projectId: "arthur-sistema-pedidos",
+  storageBucket: "arthur-sistema-pedidos.firebasestorage.app",
+  messagingSenderId: "1039699696450",
+  appId: "1:1039699696450:web:f4af86b423eb1b2e8706db"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-let currentUser = null;
 
 let prices = {};
 let historial = [];
@@ -1604,8 +1574,12 @@ window.renderInsumos = () => {
               <select class="ins-pres-unit" id="inspresunit-${ins.k}" onchange="updateInsPresEquiv('${ins.k}')">
                 ${['kg','g','L','ml','u'].map(u=>`<option value="${u}" ${pres.unit===u?'selected':''}>${u}</option>`).join('')}
               </select>
-              <span class="ins-pres-equiv" id="insequiv-${ins.k}">${pres.qty&&pres.unit?calcCostoBase(ins.pr,pres.qty,pres.unit)||'':''}</span>
-              <button class="btn-save-pres" onclick="saveInsPresentation('${ins.k}','${ins.name}')">Guardar</button>
+              <span class="ins-pres-label" style="margin-left:4px">$</span>
+              <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Precio" value="${ins.pr||''}"
+                id="insprecio-${ins.k}" onfocus="this.select()"
+                oninput="updateInsPresEquiv('${ins.k}')">
+              <span class="ins-pres-equiv" id="insequiv-${ins.k}">${pres.qty&&pres.unit&&ins.pr?calcCostoBase(ins.pr,pres.qty,pres.unit)||'':''}</span>
+              <button class="btn-save-pres" onclick="saveInsPresentation('${ins.k}','${ins.name}','${ins.prov}')">Guardar</button>
             </div>`}).join('')}
       </div>`;
     grid.appendChild(card);
@@ -1625,44 +1599,56 @@ window.toggleInsPanel = (k) => {
 window.updateInsPresEquiv = (k) => {
   const qty = parseFloat(document.getElementById(`inspresqty-${k}`)?.value);
   const unit = document.getElementById(`inspresunit-${k}`)?.value;
-  const pr = prices[k];
+  const precio = parseFloat(document.getElementById(`insprecio-${k}`)?.value);
   const equiv = document.getElementById(`insequiv-${k}`);
   if (!equiv) return;
-  if (qty && unit && pr) {
-    equiv.textContent = calcCostoBase(pr, qty, unit) || '';
+  if (qty && unit && precio) {
+    equiv.textContent = calcCostoBase(precio, qty, unit) || '';
   } else {
     equiv.textContent = UNIDAD_EQUIV?.[unit] || '';
   }
 };
 
-window.saveInsPresentation = async (k, nombre) => {
+window.saveInsPresentation = async (k, nombre, provName) => {
   const qty = parseFloat(document.getElementById(`inspresqty-${k}`)?.value);
   const unit = document.getElementById(`inspresunit-${k}`)?.value;
+  const newPrecio = parseFloat(document.getElementById(`insprecio-${k}`)?.value);
   if (!qty || !unit) { showToast('⚠ Ingresá cantidad y unidad'); return; }
+  // Save presentation
   presentations[k] = { qty, unit };
-  try {
-    await setDoc(doc(db,'data','presentations'), presentations);
-  } catch(e) {}
+  try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
+  // Save price if provided
+  if (newPrecio && newPrecio > 0) {
+    const oldPrice = prices[k] || null;
+    prices[k] = newPrecio;
+    try {
+      await setDoc(doc(db,'data','prices'), prices);
+      await addDoc(collection(db,'historial'), {
+        key: k, provName: provName || '', prodName: nombre,
+        oldPrice, newPrice: newPrecio,
+        userEmail: 'usuario', userName: 'Usuario',
+        timestamp: serverTimestamp(),
+      });
+    } catch(e) {}
+    // Update price in row
+    const priceEl = document.querySelector(`#insrow-${k} .ins-price`);
+    if (priceEl) { priceEl.textContent = '$' + Math.round(newPrecio).toLocaleString('es-AR'); priceEl.classList.remove('no-price'); }
+    // Update pedidos card
+    const parts = k.split('_');
+    const ppEl = document.getElementById(`pp-${parts[0]}-${parts[1]}`);
+    if (ppEl) { ppEl.textContent = fmtPrice(newPrecio); ppEl.classList.add('has-price'); }
+  }
   // Close panel
   document.getElementById(`inspanel-${k}`)?.classList.remove('open');
   document.getElementById(`insrow-${k}`)?.classList.remove('expanded');
   // Update saved label
-  const savedEl = document.getElementById(`insrow-${k}`)?.querySelector('.ins-pres-saved');
-  if (savedEl) { savedEl.textContent = `${qty} ${unit}`; }
-  else {
-    const row = document.getElementById(`insrow-${k}`);
-    if (row) {
-      const span = document.createElement('span');
-      span.className = 'ins-pres-saved';
-      span.textContent = `${qty} ${unit}`;
-      row.insertBefore(span, row.querySelector('.ins-price'));
-    }
+  const row = document.getElementById(`insrow-${k}`);
+  if (row) {
+    let savedEl = row.querySelector('.ins-pres-saved');
+    if (!savedEl) { savedEl = document.createElement('span'); savedEl.className = 'ins-pres-saved'; row.insertBefore(savedEl, row.querySelector('.ins-price')); }
+    savedEl.textContent = `${qty} ${unit}`;
   }
-  // Refresh precios row
-  const parts = k.split('_');
-  const ppEl = document.getElementById(`pp-${parts[0]}-${parts[1]}`);
-  if (ppEl && prices[k]) { ppEl.textContent = fmtPrice(prices[k]); ppEl.classList.add('has-price'); }
-  showToast(`✓ Presentación guardada: ${qty} ${unit}`);
+  showToast(`✓ "${nombre}" guardado`);
 };
 
 window.crearInsumoDesdeSearch = () => {
@@ -1694,6 +1680,7 @@ window.abrirModalNuevoInsumo = () => {
   // Reset fields
   document.getElementById('niNombre').value = '';
   document.getElementById('niPresQty').value = '';
+  document.getElementById('niPrecio').value = '';
   document.getElementById('niEquiv').textContent = '';
   document.getElementById('niNuevoProvWrap').style.display = 'none';
   document.getElementById('niNuevoProvNombre').value = '';
@@ -1715,8 +1702,14 @@ window.selectNiCat = (catId) => {
 window.updateNiEquiv = () => {
   const qty = parseFloat(document.getElementById('niPresQty')?.value);
   const unit = document.getElementById('niPresUnit')?.value;
+  const precio = parseFloat(document.getElementById('niPrecio')?.value);
   const equiv = document.getElementById('niEquiv');
-  if (equiv) equiv.textContent = UNIDAD_EQUIV?.[unit] || '';
+  if (!equiv) return;
+  if (qty && unit && precio) {
+    equiv.textContent = calcCostoBase(precio, qty, unit) || '';
+  } else {
+    equiv.textContent = UNIDAD_EQUIV?.[unit] || '';
+  }
 };
 
 window.guardarNuevoInsumo = async () => {
@@ -1725,6 +1718,7 @@ window.guardarNuevoInsumo = async () => {
   const catBtn = document.querySelector('[data-nicat].current');
   const presQty = parseFloat(document.getElementById('niPresQty')?.value);
   const presUnit = document.getElementById('niPresUnit')?.value;
+  const niPrecio = parseFloat(document.getElementById('niPrecio')?.value);
   if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
   if (!catBtn) { showToast('⚠ Seleccioná una categoría'); return; }
   const catId = catBtn.dataset.nicat;
@@ -1762,6 +1756,18 @@ window.guardarNuevoInsumo = async () => {
   if (presQty && presUnit) {
     presentations[k] = { qty: presQty, unit: presUnit };
     try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
+  }
+  if (niPrecio && niPrecio > 0) {
+    prices[k] = niPrecio;
+    try {
+      await setDoc(doc(db,'data','prices'), prices);
+      await addDoc(collection(db,'historial'), {
+        key: k, provName: p.name, prodName: nombre,
+        oldPrice: null, newPrice: niPrecio,
+        userEmail: 'usuario', userName: 'Usuario',
+        timestamp: serverTimestamp(),
+      });
+    } catch(e) {}
   }
   cerrarModalNuevoInsumo();
   showToast(`✓ "${nombre}" agregado${presQty ? ` · ${presQty} ${presUnit}` : ''}`);
@@ -1883,88 +1889,6 @@ function saveToCache() {
   } catch(e) {}
 }
 
-// ── AUTENTICACIÓN ──
-// Lista de emails autorizados — agregá los que necesitás
-const AUTHORIZED_EMAILS = [
-  'hernan.layno@gmail.com',
-  'temujin13@gmail.com',
-  'r2d2@arthur.com.ar',
-  'juan.layno@gmail.com',
-  'info@arthur.com.ar',
-];
-
-function showScreen(id) {
-  ['loginScreen','deniedScreen'].forEach(s => {
-    const el = document.getElementById(s);
-    if (el) el.style.display = s === id ? 'flex' : 'none';
-  });
-}
-
-function setupUserUI(user) {
-  currentUser = user;
-  if (user.photoURL) {
-    const avatar = document.getElementById('userAvatar');
-    avatar.src = user.photoURL;
-    avatar.style.display = 'block';
-  } else {
-    const initial = document.getElementById('userInitial');
-    initial.textContent = (user.displayName || user.email)[0].toUpperCase();
-    initial.style.display = 'flex';
-  }
-  const nameEl = document.getElementById('userName');
-  if (nameEl) nameEl.textContent = user.displayName || user.email;
-}
-
-window.loginGoogle = async () => {
-  try {
-    await signInWithRedirect(auth, googleProvider);
-  } catch(e) {
-    console.error('Login error:', e);
-  }
-};
-
-window.logoutAndReset = async () => {
-  sessionStorage.removeItem(CACHE_KEY);
-  await signOut(auth);
-};
-
-// Bind buttons via event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  const btnLogin = document.getElementById('btnLoginGoogle');
-  if (btnLogin) btnLogin.addEventListener('click', async () => {
-    try {
-      btnLogin.disabled = true;
-      btnLogin.innerHTML = '<span style="opacity:0.6">Abriendo Google...</span>';
-      await signInWithPopup(auth, googleProvider);
-    } catch(e) {
-      console.error('Login error:', e.code);
-      btnLogin.disabled = false;
-      btnLogin.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Iniciar sesión con Google`;
-    }
-  });
-  const btnDenied = document.getElementById('btnLogoutDenied');
-  if (btnDenied) btnDenied.addEventListener('click', () => { sessionStorage.removeItem(CACHE_KEY); signOut(auth); });
-});
-
-// Auth state listener — controla todo el flujo
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    hideLoader();
-    showScreen('loginScreen');
-    return;
-  }
-  if (!AUTHORIZED_EMAILS.includes(user.email.toLowerCase())) {
-    hideLoader();
-    document.getElementById('deniedMsg').textContent = `${user.email} no tiene acceso. Contactá al administrador.`;
-    showScreen('deniedScreen');
-    return;
-  }
-  showScreen(null);
-  const loader = document.getElementById('loaderScreen');
-  if (loader) loader.style.display = 'flex';
-  setupUserUI(user);
-  await init();
-});
 
 async function init() {
   // Try cache first — show UI instantly
@@ -2044,11 +1968,8 @@ async function refreshFromFirebase(silent = true) {
   } catch(e) {}
 }
 
-// Auto-refresh cada 2 minutos en background
-setInterval(() => refreshFromFirebase(true), 2 * 60 * 1000);
-
-// SWITCH VIEW — refresca datos al cambiar de solapa
-window.switchView = async (view) => {
+// SWITCH VIEW — solo muestra la vista, sin refrescar datos
+window.switchView = (view) => {
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));
   document.getElementById('viewPedidos').style.display  = view==='pedidos'  ?'block':'none';
   document.getElementById('viewPrecios').style.display  = view==='precios'  ?'block':'none';
@@ -2056,12 +1977,9 @@ window.switchView = async (view) => {
   document.getElementById('viewRecetas').style.display  = view==='recetas'  ?'block':'none';
   document.getElementById('viewInsumos').style.display  = view==='insumos'  ?'block':'none';
   document.getElementById('summaryBar').style.display   = view==='pedidos'  ?''    :'none';
-  // Refresh data for the selected view
-  if (view==='historial') { await refreshFromFirebase(); renderHistorial(); }
-  else if (view==='recetas') { await refreshFromFirebase(); renderRecetas(); }
-  else if (view==='insumos') { await refreshFromFirebase(); renderInsumos(); }
-  else if (view==='precios') { await refreshFromFirebase(); buildPreciosGrid(); }
-  else if (view==='pedidos') { await refreshFromFirebase(); }
+  if(view==='historial') renderHistorial();
+  if(view==='recetas') renderRecetas();
+  if(view==='insumos') renderInsumos();
 };
 
 // FILTER BAR
@@ -2606,6 +2524,9 @@ window.closeHistModal=(e)=>{
 };
 
 init();
+
+// Auto-refresh cada 2 minutos en background sin interrumpir lo que se está cargando
+setInterval(() => refreshFromFirebase(true), 2 * 60 * 1000);
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
