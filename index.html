@@ -201,7 +201,34 @@
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 300; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* PEDIDOS PENDIENTES */
+  /* PAGOS POR PROVEEDOR */
+  #viewPagos { display: none; }
+  .pagos-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .pagos-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .pagos-title { font-size: 18px; font-weight: 600; }
+  .pagos-sub { font-size: 13px; color: var(--ink2); margin-top: 2px; }
+  .pagos-filtros { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pagos-filtro { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
+  .pagos-filtro.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .pagos-prov-block { margin-bottom: 20px; }
+  .pagos-prov-header { font-size: 13px; font-weight: 700; color: var(--ink); padding: 8px 14px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .pagos-prov-stats { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink3); font-weight: 400; }
+  .pago-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px; overflow: hidden; }
+  .pago-card.vencido { border-color: #FCA5A5; }
+  .pago-card.vence-hoy { border-color: #FCD34D; }
+  .pago-card.vence-manana { border-color: #FCD34D; }
+  .pago-card.pagado { opacity: 0.65; }
+  .pago-card-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; flex-wrap: wrap; }
+  .pago-card-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .pago-card-titulo { font-size: 13px; font-weight: 500; }
+  .pago-card-fechas { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+  .pago-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+  .pago-badge.pagado { background: #D1FAE5; color: #065F46; }
+  .pago-badge.vencido { background: #FEE2E2; color: #B91C1C; }
+  .pago-badge.vence-hoy { background: #FEF3C7; color: #92400E; }
+  .pago-badge.vence-manana { background: #FEF9C3; color: #854D0E; }
+  .pago-badge.pendiente { background: #EDE9FE; color: #5B21B6; }
+  .pago-venc-warn { background: #FEF3C7; padding: 5px 14px; font-size: 11px; color: #92400E; display: flex; align-items: center; gap: 5px; border-top: 1px solid #FDE68A; }
   #viewPendientes { display: none; }
   .pend-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
   .pend-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
@@ -455,6 +482,7 @@
       <button class="nav-tab" data-view="recetas" onclick="switchView('recetas')">👨‍🍳 <span>Recetas</span></button>
       <button class="nav-tab" data-view="insumos" onclick="switchView('insumos')">🗂 <span>Insumos</span></button>
       <button class="nav-tab" data-view="pendientes" onclick="switchView('pendientes')">🚚 <span>Pendientes</span></button>
+      <button class="nav-tab" data-view="pagos" onclick="switchView('pagos')" id="tab-pagos">💳 <span>Pagos</span><span id="pagos-badge" style="display:none;margin-left:5px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;vertical-align:middle"></span></button>
     </nav>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
@@ -611,6 +639,25 @@
     <div class="cat-picker-sub" id="catPickerSub"></div>
     <div class="cat-picker-grid" id="catPickerGrid"></div>
     <button class="cat-picker-cancel" onclick="cerrarCatPicker()">Cancelar</button>
+  </div>
+</div>
+
+<!-- PAGOS VIEW -->
+<div id="viewPagos">
+  <div class="pagos-container">
+    <div class="pagos-top">
+      <div>
+        <div class="pagos-title">💳 Pagos por proveedor</div>
+        <div class="pagos-sub">Seguimiento de pagos agrupados por proveedor</div>
+      </div>
+      <div class="pagos-filtros">
+        <button class="pagos-filtro active" data-filtro="todos" onclick="filtrarPagos('todos')">Todos</button>
+        <button class="pagos-filtro" data-filtro="pendiente" onclick="filtrarPagos('pendiente')">⏳ Pendientes</button>
+        <button class="pagos-filtro" data-filtro="vencido" onclick="filtrarPagos('vencido')">🔴 Vencidos</button>
+        <button class="pagos-filtro" data-filtro="pagado" onclick="filtrarPagos('pagado')">✅ Pagados</button>
+      </div>
+    </div>
+    <div id="pagosList"></div>
   </div>
 </div>
 
@@ -2336,17 +2383,19 @@ async function refreshFromFirebase(silent = true) {
 // SWITCH VIEW — solo muestra la vista, sin refrescar datos
 window.switchView = (view) => {
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));
-  document.getElementById('viewPedidos').style.display  = view==='pedidos'  ?'block':'none';
-  document.getElementById('viewPrecios').style.display  = view==='precios'  ?'block':'none';
-  document.getElementById('viewHistorial').style.display= view==='historial'?'block':'none';
-  document.getElementById('viewRecetas').style.display  = view==='recetas'  ?'block':'none';
-  document.getElementById('viewInsumos').style.display  = view==='insumos'  ?'block':'none';
+  document.getElementById('viewPedidos').style.display   = view==='pedidos'   ?'block':'none';
+  document.getElementById('viewPrecios').style.display   = view==='precios'   ?'block':'none';
+  document.getElementById('viewHistorial').style.display = view==='historial' ?'block':'none';
+  document.getElementById('viewRecetas').style.display   = view==='recetas'   ?'block':'none';
+  document.getElementById('viewInsumos').style.display   = view==='insumos'   ?'block':'none';
   document.getElementById('viewPendientes').style.display= view==='pendientes'?'block':'none';
-  document.getElementById('summaryBar').style.display   = view==='pedidos'  ?''    :'none';
+  document.getElementById('viewPagos').style.display     = view==='pagos'     ?'block':'none';
+  document.getElementById('summaryBar').style.display    = view==='pedidos'   ?''     :'none';
   if(view==='historial') renderHistorial();
   if(view==='recetas') renderRecetas();
   if(view==='insumos') renderInsumos();
   if(view==='pendientes') renderPendientes();
+  if(view==='pagos') renderPagos();
 };
 
 // FILTER BAR
@@ -2485,7 +2534,155 @@ function buildMessage(pid){
   return msg+`\n¡Gracias! 🙏`;
 }
 
-// ── PEDIDOS PENDIENTES ──
+// ── PAGOS POR PROVEEDOR ──
+let pagosFiltro = 'todos';
+
+function getEstadoPago(p) {
+  if (!p.pago) return 'sin-info';
+  if (p.pago.pagado) return 'pagado';
+  const hoy = new Date().toISOString().split('T')[0];
+  const manana = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const venc = p.pago.vencimiento || '';
+  if (!venc || p.pago.condicion === 'contado') return 'pendiente';
+  if (venc < hoy) return 'vencido';
+  if (venc === hoy) return 'vence-hoy';
+  if (venc === manana) return 'vence-manana';
+  return 'pendiente';
+}
+
+function updatePagosBadge() {
+  const recibidos = pedidosPendientes.filter(p => p.estado === 'recibido');
+  const alertas = recibidos.filter(p => {
+    const est = getEstadoPago(p);
+    return est === 'vencido' || est === 'vence-hoy' || est === 'vence-manana';
+  });
+  const badge = document.getElementById('pagos-badge');
+  if (!badge) return;
+  if (alertas.length) {
+    badge.textContent = alertas.length;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+window.filtrarPagos = (filtro) => {
+  pagosFiltro = filtro;
+  document.querySelectorAll('.pagos-filtro').forEach(b => b.classList.toggle('active', b.dataset.filtro === filtro));
+  renderPagos();
+};
+
+window.renderPagos = () => {
+  updatePagosBadge();
+  const list = document.getElementById('pagosList');
+  const recibidos = pedidosPendientes.filter(p => p.estado === 'recibido');
+
+  if (!recibidos.length) {
+    list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">💳</div>No hay pagos registrados todavía.</div>`;
+    return;
+  }
+
+  // Aplicar filtro
+  const filtrados = pagosFiltro === 'todos' ? recibidos : recibidos.filter(p => {
+    const est = getEstadoPago(p);
+    if (pagosFiltro === 'pagado') return est === 'pagado';
+    if (pagosFiltro === 'vencido') return est === 'vencido';
+    if (pagosFiltro === 'pendiente') return ['pendiente','vence-hoy','vence-manana','sin-info'].includes(est);
+    return true;
+  });
+
+  if (!filtrados.length) {
+    list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🔍</div>No hay pagos en esta categoría.</div>`;
+    return;
+  }
+
+  // Agrupar por proveedor A→Z
+  const porProv = {};
+  filtrados.forEach(p => {
+    if (!porProv[p.provId]) porProv[p.provId] = { provName: p.provName, items: [] };
+    porProv[p.provId].items.push(p);
+  });
+  const provsSorted = Object.values(porProv).sort((a,b) => a.provName.localeCompare(b.provName,'es',{sensitivity:'base'}));
+
+  // Dentro de cada proveedor: primero pendientes por vencimiento, luego pagados
+  provsSorted.forEach(prov => {
+    const pendientes = prov.items.filter(p => !p.pago?.pagado).sort((a,b) => (a.pago?.vencimiento||'').localeCompare(b.pago?.vencimiento||''));
+    const pagados = prov.items.filter(p => p.pago?.pagado).sort((a,b) => (b.pago?.fechaPago||'').localeCompare(a.pago?.fechaPago||''));
+    prov.items = [...pendientes, ...pagados];
+  });
+
+  list.innerHTML = provsSorted.map(prov => {
+    const total = prov.items.length;
+    const pagados = prov.items.filter(p => p.pago?.pagado).length;
+    const vencidos = prov.items.filter(p => getEstadoPago(p) === 'vencido').length;
+
+    const itemsHtml = prov.items.map(p => {
+      const est = getEstadoPago(p);
+      const fechaPedido = p.fechaPedido?.toDate ? p.fechaPedido.toDate() : new Date();
+      const pedStr = fechaPedido.toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+      const entStr = p.fechaEntrega ? (() => { const [y,m,d]=p.fechaEntrega.split('-'); return new Date(y,m-1,d).toLocaleDateString('es-AR',{day:'numeric',month:'short'}); })() : '—';
+      const recStr = p.fechaRecepcion ? new Date(p.fechaRecepcion).toLocaleDateString('es-AR',{day:'numeric',month:'short'}) : '—';
+      const vencStr = p.pago?.vencimiento ? (() => { const [y,m,d]=p.pago.vencimiento.split('-'); return new Date(y,m-1,d).toLocaleDateString('es-AR',{day:'numeric',month:'short'}); })() : '';
+
+      const badgeLabel = {
+        'pagado': '✅ Pagado',
+        'vencido': '🔴 Vencido',
+        'vence-hoy': '🟡 Vence hoy',
+        'vence-manana': '⚠️ Vence mañana',
+        'pendiente': '⏳ Pendiente',
+        'sin-info': '—',
+      }[est] || '—';
+
+      const warn = (est === 'vence-manana') ?
+        `<div class="pago-venc-warn">⚠️ Este pago vence mañana — ${vencStr}</div>` : '';
+
+      return `<div class="pago-card ${est}">
+        ${warn}
+        <div class="pago-card-row">
+          <div class="pago-card-info">
+            <div class="pago-card-titulo">${p.items?.length || 0} productos · ${COND_PAGO_LABEL[p.pago?.condicion||'contado']}</div>
+            <div class="pago-card-fechas">
+              Pedido: ${pedStr} · Entrega: ${entStr} · Recibido: ${recStr}
+              ${p.pago?.pagado ? ` · Pagado: ${new Date(p.pago.fechaPago).toLocaleDateString('es-AR',{day:'numeric',month:'short'})} (${p.pago.medio==='efectivo'?'Efectivo':'Transfer'})` : ''}
+              ${vencStr && !p.pago?.pagado ? ` · Vence: ${vencStr}` : ''}
+            </div>
+          </div>
+          <span class="pago-badge ${est}">${badgeLabel}</span>
+          ${!p.pago?.pagado ? `
+            <select class="pend-pago-sel" id="mpago-${p.id}" style="font-size:11px;padding:4px 6px">
+              <option value="transfer" ${p.pago?.medio==='transfer'?'selected':''}>Transfer</option>
+              <option value="efectivo" ${p.pago?.medio==='efectivo'?'selected':''}>Efectivo</option>
+            </select>
+            <button class="btn-pagar" onclick="marcarPagadoDesde('${p.id}')" style="font-size:11px;padding:5px 10px">💳 Pagar</button>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="pagos-prov-block">
+      <div class="pagos-prov-header">
+        <span>${prov.provName}</span>
+        <span class="pagos-prov-stats">${pagados}/${total} pagados${vencidos ? ` · ${vencidos} vencido${vencidos>1?'s':''}` : ''}</span>
+      </div>
+      ${itemsHtml}
+    </div>`;
+  }).join('');
+};
+
+window.marcarPagadoDesde = async (id) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  const medio = document.getElementById(`mpago-${id}`)?.value || 'transfer';
+  const ahora = new Date().toISOString();
+  if (!p.pago) p.pago = {};
+  p.pago.pagado = true;
+  p.pago.fechaPago = ahora;
+  p.pago.medio = medio;
+  try { await setDoc(doc(db,'pedidosPendientes',id), {pago: p.pago}, {merge:true}); } catch(e) {}
+  showToast(`✓ Pago registrado — ${medio === 'efectivo' ? 'Efectivo' : 'Transferencia'}`);
+  renderPagos();
+  updatePagosBadge();
+};
 let pedidosPendientes = [];
 
 async function loadPedidosPendientes() {
@@ -2528,7 +2725,6 @@ window.renderPendientes = () => {
 
   const conFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && p.fechaEntrega);
   const sinFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && !p.fechaEntrega);
-  const recibidos = pedidosPendientes.filter(p => p.estado === 'recibido');
 
   conFecha.sort((a,b) => a.fechaEntrega.localeCompare(b.fechaEntrega));
   sinFecha.sort((a,b) => {
@@ -2637,20 +2833,14 @@ window.renderPendientes = () => {
 
   let html = [...conFecha, ...sinFecha].map(renderCard).join('');
 
-  // Recibidos agrupados por proveedor
-  if (provsSorted.length) {
-    html += `<div style="margin-top:24px;padding-top:16px;border-top:2px solid var(--border)">
-      <div style="font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">✅ Recibidos</div>`;
-    provsSorted.forEach(prov => {
-      html += `<div style="margin-bottom:20px">
-        <div style="font-size:12px;font-weight:600;color:var(--ink3);margin-bottom:8px;padding-left:4px;text-transform:uppercase;letter-spacing:0.4px">${prov.provName}</div>
-        ${prov.items.map(renderCard).join('')}
-      </div>`;
-    });
-    html += `</div>`;
+  if (!conFecha.length && !sinFecha.length) {
+    list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🚚</div>No hay pedidos pendientes de entrega.<br>Los pedidos enviados por WhatsApp aparecerán acá.</div>`;
+    updatePagosBadge();
+    return;
   }
 
   list.innerHTML = html;
+  updatePagosBadge();
 };
 
 window.guardarFechaEntrega = async (id, fecha) => {
@@ -2688,6 +2878,7 @@ window.marcarRecibido = async (id) => {
   } catch(e) {}
   showToast(`✓ Pedido de ${p.provName} marcado como recibido`);
   renderPendientes();
+  updatePagosBadge();
 };
 
 window.marcarPagado = async (id) => {
