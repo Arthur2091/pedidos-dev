@@ -730,9 +730,6 @@ PROVIDERS.forEach(p => {
 let currentModalProvider = null;
 const now = new Date();
 
-// Date header
-document.getElementById('fecha-hdr').textContent = now.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
-
 function fmtTel(t) { const c=t.replace(/\D/g,''); return c.length===10?`${c.slice(0,2)} ${c.slice(2,6)}-${c.slice(6)}`:t; }
 function fmtPrice(p) { return p?`$${Number(p).toLocaleString('es-AR')}`:'—'; }
 function key(pid,idx) { return `${pid}_${idx}`; }
@@ -1687,6 +1684,8 @@ async function init() {
     buildCards();
     buildPreciosGrid();
     buildHistorialFilters();
+    const fEl = document.getElementById('fecha-hdr');
+    if (fEl) fEl.textContent = now.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
     hideLoader();
     // Refresh in background silently
     refreshFromFirebase();
@@ -1721,6 +1720,9 @@ async function init() {
   buildCards();
   buildPreciosGrid();
   buildHistorialFilters();
+  // Set date header
+  const fechaEl = document.getElementById('fecha-hdr');
+  if (fechaEl) fechaEl.textContent = now.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
   hideLoader();
 }
 
