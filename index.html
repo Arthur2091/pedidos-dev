@@ -2642,7 +2642,7 @@ window.renderPagos = () => {
         ${warn}
         <div class="pago-card-row">
           <div class="pago-card-info">
-            <div class="pago-card-titulo">${p.items?.length || 0} productos · ${COND_PAGO_LABEL[p.pago?.condicion||'contado']}</div>
+            <div class="pago-card-titulo">${p.items?.length || 0} productos</div>
             <div class="pago-card-fechas">
               Pedido: ${pedStr} · Entrega: ${entStr} · Recibido: ${recStr}
               ${p.pago?.pagado ? ` · Pagado: ${new Date(p.pago.fechaPago).toLocaleDateString('es-AR',{day:'numeric',month:'short'})} (${p.pago.medio==='efectivo'?'Efectivo':'Transfer'})` : ''}
@@ -2650,14 +2650,22 @@ window.renderPagos = () => {
             </div>
           </div>
           <span class="pago-badge ${est}">${badgeLabel}</span>
-          ${!p.pago?.pagado ? `
-            <select class="pend-pago-sel" id="mpago-${p.id}" style="font-size:11px;padding:4px 6px">
-              <option value="transfer" ${p.pago?.medio==='transfer'?'selected':''}>Transfer</option>
-              <option value="efectivo" ${p.pago?.medio==='efectivo'?'selected':''}>Efectivo</option>
-            </select>
-            <button class="btn-pagar" onclick="marcarPagadoDesde('${p.id}')" style="font-size:11px;padding:5px 10px">💳 Pagar</button>
-          ` : ''}
         </div>
+        ${!p.pago?.pagado ? `
+        <div class="pago-card-row" style="padding-top:0;gap:6px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--ink3)">Condición:</span>
+          <select class="pend-pago-sel" style="font-size:11px;padding:4px 6px" onchange="guardarCondPago('${p.id}',this.value)">
+            <option value="contado" ${p.pago?.condicion==='contado'?'selected':''}>Contado</option>
+            <option value="7dias" ${p.pago?.condicion==='7dias'?'selected':''}>7 días</option>
+            <option value="15dias" ${p.pago?.condicion==='15dias'?'selected':''}>15 días</option>
+          </select>
+          <span style="font-size:11px;color:var(--ink3)">Medio:</span>
+          <select class="pend-pago-sel" id="mpago-${p.id}" style="font-size:11px;padding:4px 6px">
+            <option value="transfer" ${p.pago?.medio==='transfer'?'selected':''}>Transferencia</option>
+            <option value="efectivo" ${p.pago?.medio==='efectivo'?'selected':''}>Efectivo</option>
+          </select>
+          <button class="btn-pagar" onclick="marcarPagadoDesde('${p.id}')" style="font-size:11px;padding:5px 10px">💳 Pagar</button>
+        </div>` : ''}
       </div>`;
     }).join('');
 
