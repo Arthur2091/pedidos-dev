@@ -2572,7 +2572,9 @@ window.renderPendientes = () => {
           <input class="pend-fecha-inp" type="date" value="${p.fechaEntrega||''}"
             ${isRecibido ? 'disabled' : ''}
             onchange="guardarFechaEntrega('${p.id}', this.value)">
-          ${!isRecibido ? `<button class="btn-recibido" onclick="marcarRecibido('${p.id}')">✅ Marcar recibido</button>` : ''}
+          ${!isRecibido
+            ? `<button class="btn-recibido" onclick="marcarRecibido('${p.id}')">✅ Marcar recibido</button>`
+            : `<button class="btn-del-pend" onclick="desmarcarRecibido('${p.id}')" style="color:#92400E;border-color:#F59E0B">↩ Desmarcar</button>`}
           <button class="btn-del-pend" onclick="eliminarPendiente('${p.id}')">🗑</button>
         </div>
       </div>
@@ -2597,7 +2599,14 @@ window.marcarRecibido = async (id) => {
   renderPendientes();
 };
 
-window.eliminarPendiente = async (id) => {
+window.desmarcarRecibido = async (id) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  p.estado = 'pendiente';
+  try { await setDoc(doc(db,'pedidosPendientes',id), {estado:'pendiente'}, {merge:true}); } catch(e) {}
+  showToast(`↩ Pedido de ${p.provName} vuelto a pendiente`);
+  renderPendientes();
+};
   if (!confirm('¿Eliminás este pedido del historial?')) return;
   pedidosPendientes = pedidosPendientes.filter(x => x.id !== id);
   try { const {deleteDoc} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
