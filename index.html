@@ -215,18 +215,15 @@
   .ins-list { padding: 6px 0; max-height: 280px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .ins-list::-webkit-scrollbar { width: 4px; }
   .ins-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  .ins-row { display: flex; align-items: center; gap: 10px; padding: 7px 18px; transition: background 0.1s; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .ins-row { display: flex; align-items: center; gap: 10px; padding: 7px 18px; transition: background 0.1s; border-bottom: 1px solid var(--border); }
   .ins-row:last-child { border-bottom: none; }
   .ins-row:hover { background: var(--surface2); }
-  .ins-row.expanded { background: var(--surface2); border-bottom: none; }
   .ins-name { flex: 1; font-size: 13px; color: var(--ink); }
   .ins-prov { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
   .ins-price { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 600; color: var(--accent); min-width: 70px; text-align: right; }
   .ins-price.no-price { color: var(--ink3); font-weight: 400; font-style: italic; }
-  .ins-expand-icon { font-size: 11px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; }
-  .ins-row.expanded .ins-expand-icon { transform: rotate(90deg); }
-  .ins-pres-panel { display: none; padding: 10px 18px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 10px; align-items: center; flex-wrap: wrap; }
-  .ins-pres-panel.open { display: flex; }
+  .ins-edit-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; opacity: 0.4; transition: opacity 0.15s; flex-shrink: 0; }
+  .ins-edit-btn:hover { opacity: 1; background: var(--surface2); }
   .ins-pres-label { font-size: 12px; color: var(--ink2); font-weight: 500; }
   .ins-pres-qty { width: 70px; font-family: 'DM Mono', monospace; font-size: 13px; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; text-align: right; -moz-appearance: textfield; transition: border-color 0.15s; }
   .ins-pres-qty::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -361,6 +358,29 @@
 </head>
 <body>
 
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:flex;position:fixed;inset:0;background:var(--ink);z-index:1000;align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--surface);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.3)">
+    <div style="font-size:40px;margin-bottom:12px">🛒</div>
+    <div style="font-size:22px;font-weight:600;letter-spacing:-0.5px;margin-bottom:6px">Sistema de Pedidos</div>
+    <div style="font-size:14px;color:var(--ink2);margin-bottom:36px">Iniciá sesión para continuar</div>
+    <button id="btnLoginGoogle" style="width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:14px 20px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-bottom:12px">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Iniciar sesión con Google
+    </button>
+    <div style="font-size:12px;color:var(--ink3)">Solo usuarios autorizados pueden acceder</div>
+  </div>
+</div>
+
+<!-- ACCESS DENIED -->
+<div id="deniedScreen" style="display:none;position:fixed;inset:0;background:var(--ink);z-index:1000;align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--surface);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center">
+    <div style="font-size:40px;margin-bottom:16px">🚫</div>
+    <div style="font-size:20px;font-weight:600;margin-bottom:8px">Acceso no autorizado</div>
+    <div style="font-size:14px;color:var(--ink2);margin-bottom:24px" id="deniedMsg">Tu cuenta no tiene acceso.</div>
+    <button id="btnLogoutDenied" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:10px 24px;border-radius:10px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--ink)">Cerrar sesión</button>
+  </div>
+</div>
 <div id="loaderScreen" style="position:fixed;inset:0;background:var(--ink);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999">
   <div style="font-size:36px">🛒</div>
   <div style="color:#fff;font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif">Sistema de Pedidos</div>
@@ -385,6 +405,12 @@
       <button class="nav-tab" data-view="recetas" onclick="switchView('recetas')">👨‍🍳 <span>Recetas</span></button>
       <button class="nav-tab" data-view="insumos" onclick="switchView('insumos')">🗂 <span>Insumos</span></button>
     </nav>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <img id="userAvatar" src="" style="display:none;width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);object-fit:cover">
+    <span id="userInitial" style="display:none;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:600;align-items:center;justify-content:center"></span>
+    <span id="userName" style="font-size:12px;color:#aaa;font-family:'DM Mono',monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <button onclick="logoutAndReset()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">Salir</button>
   </div>
 </header>
 
@@ -559,6 +585,50 @@
   </div>
 </div>
 
+<!-- MODAL EDITAR INSUMO -->
+<div class="rec-modal-overlay" id="editInsumoOverlay">
+  <div style="background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:16px;animation:slideUp 0.2s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:16px;font-weight:600">Editar insumo</span>
+      <button class="modal-close" onclick="cerrarEditInsumo()">×</button>
+    </div>
+    <div>
+      <div class="rec-field-label">Nombre</div>
+      <input class="rec-field-input" id="eiNombre" type="text" placeholder="Nombre del insumo">
+    </div>
+    <div>
+      <div class="rec-field-label">Proveedor</div>
+      <select class="rec-field-input" id="eiProv" style="cursor:pointer"></select>
+    </div>
+    <div>
+      <div class="rec-field-label">Presentación</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Cant." id="eiPresQty"
+          style="width:80px" onfocus="this.select()" oninput="updateEiEquiv()">
+        <select class="ins-pres-unit" id="eiPresUnit" onchange="updateEiEquiv()">
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="L">L</option>
+          <option value="ml">ml</option>
+          <option value="u">u</option>
+        </select>
+        <span style="color:var(--ink3);font-size:13px">$</span>
+        <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Precio" id="eiPrecio"
+          style="width:100px" onfocus="this.select()" oninput="updateEiEquiv()">
+        <span style="font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace" id="eiEquiv"></span>
+      </div>
+    </div>
+    <div>
+      <div class="rec-field-label">Categoría</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="eiCatGrid"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn-cancel-rec" onclick="cerrarEditInsumo()">Cancelar</button>
+      <button class="btn-save-rec" onclick="guardarEditInsumo()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NUEVO INSUMO -->
 <div class="rec-modal-overlay" id="nuevoInsumoOverlay">
   <div style="background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:16px;animation:slideUp 0.2s ease;overflow-y:auto;max-height:90vh">
@@ -730,18 +800,22 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC_dkvixcRfzRMxXTAAxjcDuhbsMajApxI",
-  authDomain: "arthur-sistema-pedidos.firebaseapp.com",
-  projectId: "arthur-sistema-pedidos",
-  storageBucket: "arthur-sistema-pedidos.firebasestorage.app",
-  messagingSenderId: "1039699696450",
-  appId: "1:1039699696450:web:f4af86b423eb1b2e8706db"
+  apiKey: "AIzaSyB76R4iR0eLPHz1n6BXbuC6JDeAgaUKC8I",
+  authDomain: "arthur-sistema-pedidos-dev.firebaseapp.com",
+  projectId: "arthur-sistema-pedidos-dev",
+  storageBucket: "arthur-sistema-pedidos-dev.firebasestorage.app",
+  messagingSenderId: "901390401278",
+  appId: "1:901390401278:web:bd11702dcb995f1abcefaf"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+let currentUser = null;
 
 let prices = {};
 let historial = [];
@@ -1558,28 +1632,13 @@ window.renderInsumos = () => {
               const pres = presentations[ins.k] || {};
               const presStr = pres.qty ? `${pres.qty} ${pres.unit}` : '';
               return `
-            <div class="ins-row" id="insrow-${ins.k}" onclick="toggleInsPanel('${ins.k}')">
-              <span class="ins-expand-icon">▶</span>
+            <div class="ins-row" id="insrow-${ins.k}">
               <span class="ins-name">${ins.name}</span>
               <span class="ins-prov">${ins.prov}</span>
               ${presStr ? `<span class="ins-pres-saved">${presStr}</span>` : ''}
               <span class="ins-price ${ins.pr ? '' : 'no-price'}">${ins.pr ? '$' + Math.round(ins.pr).toLocaleString('es-AR') : 'sin precio'}</span>
-              <button class="ins-assign-btn" onclick="event.stopPropagation();asignarCategoria('${ins.k}','${ins.name}')">mover</button>
-            </div>
-            <div class="ins-pres-panel" id="inspanel-${ins.k}">
-              <span class="ins-pres-label">Presentación:</span>
-              <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Cant." value="${pres.qty||''}"
-                id="inspresqty-${ins.k}" onfocus="this.select()"
-                oninput="updateInsPresEquiv('${ins.k}')">
-              <select class="ins-pres-unit" id="inspresunit-${ins.k}" onchange="updateInsPresEquiv('${ins.k}')">
-                ${['kg','g','L','ml','u'].map(u=>`<option value="${u}" ${pres.unit===u?'selected':''}>${u}</option>`).join('')}
-              </select>
-              <span class="ins-pres-label" style="margin-left:4px">$</span>
-              <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Precio" value="${ins.pr||''}"
-                id="insprecio-${ins.k}" onfocus="this.select()"
-                oninput="updateInsPresEquiv('${ins.k}')">
-              <span class="ins-pres-equiv" id="insequiv-${ins.k}">${pres.qty&&pres.unit&&ins.pr?calcCostoBase(ins.pr,pres.qty,pres.unit)||'':''}</span>
-              <button class="btn-save-pres" onclick="saveInsPresentation('${ins.k}','${ins.name}','${ins.prov}')">Guardar</button>
+              <button class="ins-assign-btn" onclick="asignarCategoria('${ins.k}','${ins.name}')">mover</button>
+              <button class="ins-edit-btn" onclick="abrirEditInsumo('${ins.k}')" title="Editar">✏️</button>
             </div>`}).join('')}
       </div>`;
     grid.appendChild(card);
@@ -1778,6 +1837,141 @@ window.guardarNuevoInsumo = async () => {
   updatePrecioMeta(pid);
 };
 
+// ── EDITAR INSUMO ──
+let editInsumoKey = null;
+
+window.abrirEditInsumo = (k) => {
+  editInsumoKey = k;
+  const parts = k.split('_');
+  const pid = parts.slice(0, -1).join('_');
+  const idx = parseInt(parts[parts.length - 1]);
+  const p = PROVIDERS.find(x => x.id === pid);
+  if (!p) return;
+  const nombre = p.products[idx] || '';
+  const pres = presentations[k] || {};
+  const precio = prices[k] || '';
+  const catActual = insumoCategories[k] || 'otros';
+
+  document.getElementById('eiNombre').value = nombre;
+  // Populate providers
+  document.getElementById('eiProv').innerHTML = PROVIDERS.map(pr =>
+    `<option value="${pr.id}" ${pr.id === pid ? 'selected' : ''}>${pr.name}</option>`
+  ).join('');
+  document.getElementById('eiPresQty').value = pres.qty || '';
+  document.getElementById('eiPresUnit').value = pres.unit || 'kg';
+  document.getElementById('eiPrecio').value = precio || '';
+  document.getElementById('eiEquiv').textContent = '';
+  // Populate categories
+  document.getElementById('eiCatGrid').innerHTML = CATEGORIAS_RECETA.map(cat =>
+    `<button class="cat-picker-btn ${cat.id === catActual ? 'current' : ''}" data-eicat="${cat.id}" onclick="selectEiCat('${cat.id}')">
+      <span style="font-size:16px">${cat.icon}</span>${cat.label}
+    </button>`
+  ).join('');
+  updateEiEquiv();
+  document.getElementById('editInsumoOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('eiNombre').focus(), 100);
+};
+
+window.selectEiCat = (catId) => {
+  document.querySelectorAll('[data-eicat]').forEach(b => b.classList.toggle('current', b.dataset.eicat === catId));
+};
+
+window.updateEiEquiv = () => {
+  const qty = parseFloat(document.getElementById('eiPresQty')?.value);
+  const unit = document.getElementById('eiPresUnit')?.value;
+  const precio = parseFloat(document.getElementById('eiPrecio')?.value);
+  const equiv = document.getElementById('eiEquiv');
+  if (!equiv) return;
+  if (qty && unit && precio) equiv.textContent = calcCostoBase(precio, qty, unit) || '';
+  else equiv.textContent = UNIDAD_EQUIV?.[unit] || '';
+};
+
+window.cerrarEditInsumo = () => {
+  document.getElementById('editInsumoOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  editInsumoKey = null;
+};
+
+window.guardarEditInsumo = async () => {
+  if (!editInsumoKey) return;
+  const k = editInsumoKey;
+  const parts = k.split('_');
+  const oldPid = parts.slice(0, -1).join('_');
+  const oldIdx = parseInt(parts[parts.length - 1]);
+  const oldP = PROVIDERS.find(x => x.id === oldPid);
+  if (!oldP) return;
+
+  const nuevoNombre = document.getElementById('eiNombre').value.trim();
+  const nuevoPid = document.getElementById('eiProv').value;
+  const presQty = parseFloat(document.getElementById('eiPresQty').value);
+  const presUnit = document.getElementById('eiPresUnit').value;
+  const nuevoPrecio = parseFloat(document.getElementById('eiPrecio').value);
+  const catBtn = document.querySelector('[data-eicat].current');
+  const nuevaCat = catBtn?.dataset.eicat || insumoCategories[k] || 'otros';
+
+  if (!nuevoNombre) { showToast('⚠ Ingresá un nombre'); return; }
+
+  // 1. Rename in old provider
+  oldP.products[oldIdx] = nuevoNombre;
+  oldP.products.sort((a,b) => a.localeCompare(b,'es',{sensitivity:'base'}));
+
+  // 2. If provider changed, move product
+  if (nuevoPid !== oldPid) {
+    oldP.products.splice(oldP.products.indexOf(nuevoNombre), 1);
+    const newP = PROVIDERS.find(x => x.id === nuevoPid);
+    if (newP) {
+      newP.products.push(nuevoNombre);
+      newP.products.sort((a,b) => a.localeCompare(b,'es',{sensitivity:'base'}));
+      await saveCustomProducts(nuevoPid, newP.products);
+    }
+  }
+  await saveCustomProducts(oldPid, oldP.products);
+
+  // 3. New key
+  const newP2 = PROVIDERS.find(x => x.id === nuevoPid);
+  const newIdx = newP2?.products.indexOf(nuevoNombre) ?? oldIdx;
+  const newK = key(nuevoPid, newIdx);
+
+  // 4. Move prices, presentations, categories to new key
+  if (newK !== k) {
+    if (prices[k]) { prices[newK] = prices[k]; delete prices[k]; }
+    if (presentations[k]) { presentations[newK] = presentations[k]; delete presentations[k]; }
+    if (insumoCategories[k]) { insumoCategories[newK] = insumoCategories[k]; delete insumoCategories[k]; }
+  }
+
+  // 5. Save presentation
+  if (presQty && presUnit) presentations[newK] = { qty: presQty, unit: presUnit };
+  try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
+
+  // 6. Save price
+  if (nuevoPrecio > 0) {
+    const oldPrice = prices[newK] || null;
+    prices[newK] = nuevoPrecio;
+    try {
+      await setDoc(doc(db,'data','prices'), prices);
+      await addDoc(collection(db,'historial'), {
+        key: newK, provName: nuevoPid, prodName: nuevoNombre,
+        oldPrice, newPrice: nuevoPrecio,
+        userEmail: 'usuario', userName: 'Usuario',
+        timestamp: serverTimestamp(),
+      });
+    } catch(e) {}
+  }
+
+  // 7. Save category
+  await saveInsumoCategory(newK, nuevaCat);
+
+  cerrarEditInsumo();
+  showToast(`✓ "${nuevoNombre}" actualizado`);
+  renderInsumos();
+  rebuildPedidosCard(oldPid);
+  if (nuevoPid !== oldPid) rebuildPedidosCard(nuevoPid);
+  buildPreciosGrid();
+};
+
+window.toggleInsPanel = () => {}; // deprecated
+
 window.filtrarInsumos = (term) => {
   insumosSearchTerm = term;
   renderInsumos();
@@ -1889,6 +2083,88 @@ function saveToCache() {
   } catch(e) {}
 }
 
+// ── AUTENTICACIÓN ──
+// Lista de emails autorizados — agregá los que necesitás
+const AUTHORIZED_EMAILS = [
+  'hernan.layno@gmail.com',
+  'temujin13@gmail.com',
+  'r2d2@arthur.com.ar',
+  'juan.layno@gmail.com',
+  'info@arthur.com.ar',
+];
+
+function showScreen(id) {
+  ['loginScreen','deniedScreen'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = s === id ? 'flex' : 'none';
+  });
+}
+
+function setupUserUI(user) {
+  currentUser = user;
+  if (user.photoURL) {
+    const avatar = document.getElementById('userAvatar');
+    avatar.src = user.photoURL;
+    avatar.style.display = 'block';
+  } else {
+    const initial = document.getElementById('userInitial');
+    initial.textContent = (user.displayName || user.email)[0].toUpperCase();
+    initial.style.display = 'flex';
+  }
+  const nameEl = document.getElementById('userName');
+  if (nameEl) nameEl.textContent = user.displayName || user.email;
+}
+
+window.loginGoogle = async () => {
+  try {
+    await signInWithRedirect(auth, googleProvider);
+  } catch(e) {
+    console.error('Login error:', e);
+  }
+};
+
+window.logoutAndReset = async () => {
+  sessionStorage.removeItem(CACHE_KEY);
+  await signOut(auth);
+};
+
+// Bind buttons via event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const btnLogin = document.getElementById('btnLoginGoogle');
+  if (btnLogin) btnLogin.addEventListener('click', async () => {
+    try {
+      btnLogin.disabled = true;
+      btnLogin.innerHTML = '<span style="opacity:0.6">Abriendo Google...</span>';
+      await signInWithPopup(auth, googleProvider);
+    } catch(e) {
+      console.error('Login error:', e.code);
+      btnLogin.disabled = false;
+      btnLogin.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Iniciar sesión con Google`;
+    }
+  });
+  const btnDenied = document.getElementById('btnLogoutDenied');
+  if (btnDenied) btnDenied.addEventListener('click', () => { sessionStorage.removeItem(CACHE_KEY); signOut(auth); });
+});
+
+// Auth state listener — controla todo el flujo
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    hideLoader();
+    showScreen('loginScreen');
+    return;
+  }
+  if (!AUTHORIZED_EMAILS.includes(user.email.toLowerCase())) {
+    hideLoader();
+    document.getElementById('deniedMsg').textContent = `${user.email} no tiene acceso. Contactá al administrador.`;
+    showScreen('deniedScreen');
+    return;
+  }
+  showScreen(null);
+  const loader = document.getElementById('loaderScreen');
+  if (loader) loader.style.display = 'flex';
+  setupUserUI(user);
+  await init();
+});
 
 async function init() {
   // Try cache first — show UI instantly
@@ -2533,6 +2809,7 @@ document.addEventListener('keydown', (e) => {
     if (document.getElementById('recModalOverlay').classList.contains('open')) cerrarModalReceta();
     if (document.getElementById('catPickerOverlay').classList.contains('open')) cerrarCatPicker();
     if (document.getElementById('nuevoInsumoOverlay')?.classList.contains('open')) cerrarModalNuevoInsumo();
+    if (document.getElementById('editInsumoOverlay')?.classList.contains('open')) cerrarEditInsumo();
   }
 });
 </script>
