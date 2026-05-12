@@ -2309,6 +2309,7 @@ async function init() {
     buildCards();
     buildPreciosGrid();
     buildHistorialFilters();
+    updatePagosBadge();
     const fEl = document.getElementById('fecha-hdr');
     if (fEl) fEl.textContent = now.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
     hideLoader();
@@ -2346,6 +2347,7 @@ async function init() {
   buildCards();
   buildPreciosGrid();
   buildHistorialFilters();
+  updatePagosBadge();
   // Set date header
   const fechaEl = document.getElementById('fecha-hdr');
   if (fechaEl) fechaEl.textContent = now.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
@@ -2700,6 +2702,8 @@ async function guardarPedidoPendiente(pid) {
     cantidad: qty
   }));
   if (!items.length) return;
+  const condPago = p.condPago || 'contado';
+  const medio = p.pago === 'efectivo' ? 'efectivo' : 'transfer';
   const pedido = {
     provId: pid,
     provName: p.name,
@@ -2708,6 +2712,8 @@ async function guardarPedidoPendiente(pid) {
     fechaPedido: serverTimestamp(),
     fechaEntrega: null,
     estado: 'pendiente',
+    condPago,
+    medio,
     nota: ''
   };
   try {
@@ -2834,8 +2840,8 @@ window.marcarRecibido = async (id) => {
   const p = pedidosPendientes.find(x => x.id === id);
   if (!p) return;
   const prov = PROVIDERS.find(x => x.id === p.provId);
-  const condPago = prov?.condPago || 'contado';
-  const medioPago = prov?.pago === 'efectivo' ? 'efectivo' : 'transfer';
+  const condPago = p.condPago || prov?.condPago || 'contado';
+  const medioPago = p.medio || (prov?.pago === 'efectivo' ? 'efectivo' : 'transfer');
   const ahora = new Date();
   // Calcular vencimiento
   const diasPago = COND_PAGO_DIAS[condPago] || 0;
