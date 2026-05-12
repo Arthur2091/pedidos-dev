@@ -519,6 +519,7 @@
       <button class="rec-cat-filter" data-cat="pasteleria" onclick="filtrarRecetas('pasteleria')">🎂 Pastelería</button>
       <button class="rec-cat-filter" data-cat="cocina" onclick="filtrarRecetas('cocina')">🍳 Cocina</button>
       <button class="rec-cat-filter" data-cat="cafeteria" onclick="filtrarRecetas('cafeteria')">☕ Cafetería</button>
+      <button class="rec-cat-filter" data-cat="combo_cafeteria" onclick="filtrarRecetas('combo_cafeteria')">🥐 Combo Cafetería</button>
     </div>
     <div class="recetas-grid" id="recetasGrid"></div>
   </div>
@@ -546,6 +547,7 @@
             <option value="pasteleria">🎂 Pastelería</option>
             <option value="cocina">🍳 Cocina</option>
             <option value="cafeteria">☕ Cafetería</option>
+            <option value="combo_cafeteria">🥐 Combo Cafetería</option>
           </select>
         </div>
       </div>
@@ -1181,8 +1183,8 @@ async function loadRecetas() {
   } catch(e) { recetas = []; }
 }
 
-const CAT_LABELS = { panaderia:'🍞 Panadería', pastas:'🍝 Pastas', pasteleria:'🎂 Pastelería', cocina:'🍳 Cocina', cafeteria:'☕ Cafetería' };
-const CAT_COLORS = { panaderia:'#FEF3C7;color:#92400E', pastas:'#FEE2E2;color:#991B1B', pasteleria:'#FCE7F3;color:#9D174D', cocina:'#D1FAE5;color:#065F46', cafeteria:'#EDE9FE;color:#5B21B6' };
+const CAT_LABELS = { panaderia:'🍞 Panadería', pastas:'🍝 Pastas', pasteleria:'🎂 Pastelería', cocina:'🍳 Cocina', cafeteria:'☕ Cafetería', combo_cafeteria:'🥐 Combo Cafetería' };
+const CAT_COLORS = { panaderia:'#FEF3C7;color:#92400E', pastas:'#FEE2E2;color:#991B1B', pasteleria:'#FCE7F3;color:#9D174D', cocina:'#D1FAE5;color:#065F46', cafeteria:'#EDE9FE;color:#5B21B6', combo_cafeteria:'#FFF7ED;color:#C2410C' };
 
 window.renderRecetas = () => {
   const grid = document.getElementById('recetasGrid');
