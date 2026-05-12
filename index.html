@@ -526,7 +526,7 @@
 </div>
 
 <!-- MODAL RECETA -->
-<div class="rec-modal-overlay" id="recModalOverlay" onclick="cerrarModalReceta(event)">
+<div class="rec-modal-overlay" id="recModalOverlay">
   <div class="rec-modal">
     <div class="rec-modal-header">
       <span class="rec-modal-title" id="recModalTitle">Nueva receta</span>
@@ -568,6 +568,11 @@
           <div id="ingSelectorPanel" style="display:none; flex-direction:column; gap:8px;">
             <div class="ing-cats" id="ingCatChips"></div>
             <div class="ing-prods-panel" id="ingProdsPanel"></div>
+            <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;align-items:center;gap:8px;">
+              <input type="text" id="nuevoInsumoNombre" class="add-insumo-input" placeholder="Nombre del nuevo insumo..." style="flex:1"
+                onkeydown="if(event.key==='Enter') crearInsumoDesdeReceta()">
+              <button class="btn-confirm-insumo" onclick="crearInsumoDesdeReceta()">+ Crear insumo</button>
+            </div>
           </div>
           <div id="recIngTableWrap">
             <div class="ing-empty-msg" id="ingEmptyMsg">Sin ingredientes. Usá el botón de arriba para agregar.</div>
@@ -639,6 +644,7 @@ const PROVIDERS = [
   { id:"pollo",      name:"Pollo Miguel",               cat:"carnes",      tel:"1136879572", pago:"transfer", products:[] },
   { id:"serenisima", name:"La Serenísima",              cat:"lacteos",     tel:"",           pago:"transfer", products:[] },
   { id:"bebidas",   name:"Bebidas",                   cat:"bebidas",     tel:"",           pago:"transfer", products:["Agua sin gas","Agua con gas","Levite Manzana","Levite Naranja","Levite Pomelo","Coca comun","Coca zero","Sprite zero","Schweppes","Sifon de Soda Chico","Sifon de Soda Grande"] },
+  { id:"otros_insumos", name:"Otros",                 cat:"otros",       tel:"",           pago:"transfer", products:[] },
 ];
 
 const CATS = { almacen:"Almacén", reposteria:"Repostería", lacteos:"Lácteos", fiambres:"Fiambres", especias:"Especias", carnes:"Carnes", congelados:"Congelados", cafe:"Café", descartables:"Descartables", limpieza:"Limpieza", verduleria:"Verdulería", bebidas:"Bebidas" };
@@ -900,6 +906,41 @@ let recIngredientes = []; // { tipo, pid/recetaId, nombre, provName, cantidad, u
 let activeCat = null;
 let recCatFiltro = 'todas';
 
+window.crearInsumoDesdeReceta = async () => {
+  const input = document.getElementById('nuevoInsumoNombre');
+  const nombre = input.value.trim();
+  if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
+
+  const p = PROVIDERS.find(x => x.id === 'otros_insumos');
+  if (p.products.map(x => x.toLowerCase()).includes(nombre.toLowerCase())) {
+    showToast('⚠ Ya existe ese insumo'); return;
+  }
+
+  // Add to Otros provider alphabetically
+  p.products.push(nombre);
+  p.products.sort((a,b) => a.localeCompare(b,'es',{sensitivity:'base'}));
+  await saveCustomProducts('otros_insumos', p.products);
+
+  // Add directly as ingredient to current recipe
+  const newIdx = p.products.indexOf(nombre);
+  recIngredientes.push({ tipo: 'insumo', pid: 'otros_insumos', idx: newIdx, nombre, provName: 'Otros', cantidad: 100, unidad: 'g' });
+  renderIngTable();
+  calcPreview();
+
+  // Update precios grid if visible
+  const plist = document.getElementById('plist-otros_insumos');
+  if (plist) {
+    plist.innerHTML = p.products.map((prod, i) => renderPrecioRow('otros_insumos', 'Otros', prod, i)).join('');
+    updatePrecioMeta('otros_insumos');
+  }
+
+  // Update insumos tab if visible
+  if (document.getElementById('viewInsumos').style.display !== 'none') renderInsumos();
+
+  input.value = '';
+  showToast(`✓ "${nombre}" creado en Otros y agregado a la receta`);
+};
+
 window.filtrarRecetas = (cat) => {
   recCatFiltro = cat;
   document.querySelectorAll('.rec-cat-filter').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
@@ -938,8 +979,7 @@ window.abrirModalReceta = (id = null) => {
   setTimeout(() => document.getElementById('recNombre').focus(), 100);
 };
 
-window.cerrarModalReceta = (e) => {
-  if (e && e.target !== document.getElementById('recModalOverlay')) return;
+window.cerrarModalReceta = () => {
   document.getElementById('recModalOverlay').classList.remove('open');
   document.body.style.overflow = '';
 };
@@ -1926,6 +1966,14 @@ window.closeHistModal=(e)=>{
 };
 
 init();
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('recModalOverlay').classList.contains('open')) {
+      cerrarModalReceta();
+    }
+  }
+});
 </script>
 </body>
 </html>
