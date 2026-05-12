@@ -1494,6 +1494,7 @@ window.renderInsumos = () => {
       allInsumos.push({ k, name: prod, prov: p.name, cat, pr });
     });
   });
+  allInsumos.sort((a,b) => a.name.localeCompare(b.name, 'es', {sensitivity:'base'}));
 
   // Filter by search
   const filtered = insumosSearchTerm
