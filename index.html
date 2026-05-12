@@ -1116,6 +1116,11 @@ window.addIngrediente = (pid, idx, nombre, provName) => {
   }
   recIngredientes.push({ tipo: 'insumo', pid, idx: parseInt(idx), nombre, provName, cantidad: 100, unidad: 'g' });
   renderIngTable(); calcPreview();
+  // Limpiar buscador
+  const buscador = document.getElementById('ingBuscador');
+  const results = document.getElementById('ingSearchResults');
+  if (buscador) buscador.value = '';
+  if (results) { results.style.display = 'none'; results.innerHTML = ''; }
   if (activeCat) selectCat(activeCat);
   setTimeout(() => {
     const rows = document.querySelectorAll('#recIngBody tr');
