@@ -1611,7 +1611,7 @@ function saveToCache() {
 // Lista de emails autorizados — agregá los que necesitás
 const AUTHORIZED_EMAILS = [
   'hernan.layno@gmail.com',
-  // agregá más emails acá
+  'temujin13@gmail.com',
 ];
 
 function showScreen(id) {
@@ -1650,7 +1650,9 @@ window.logoutAndReset = async () => {
 };
 
 // Manejar resultado del redirect de Google
-getRedirectResult(auth).catch(e => console.error('Redirect error:', e));
+getRedirectResult(auth).then(r => {
+  console.log('🔄 Redirect result:', r?.user?.email || 'none');
+}).catch(e => console.error('❌ Redirect error:', e.code, e.message));
 
 // Bind buttons via event listeners (not onclick) to avoid module timing issues
 document.addEventListener('DOMContentLoaded', () => {
@@ -1662,20 +1664,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Auth state listener — controla todo el flujo
 onAuthStateChanged(auth, async (user) => {
+  console.log('🔥 Auth state:', user ? user.email : 'null');
   if (!user) {
-    // No user — show login, hide everything else
     hideLoader();
     showScreen('loginScreen');
     return;
   }
-  // Check if authorized
+  console.log('✅ Authorized check for:', user.email, '| List:', AUTHORIZED_EMAILS);
   if (!AUTHORIZED_EMAILS.includes(user.email.toLowerCase())) {
     hideLoader();
     document.getElementById('deniedMsg').textContent = `${user.email} no tiene acceso. Contactá al administrador.`;
     showScreen('deniedScreen');
     return;
   }
-  // Authorized — show loader and load app
   showScreen(null);
   const loader = document.getElementById('loaderScreen');
   if (loader) loader.style.display = 'flex';
