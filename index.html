@@ -678,7 +678,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB76R4iR0eLPHz1n6BXbuC6JDeAgaUKC8I",
@@ -1641,7 +1641,7 @@ function setupUserUI(user) {
 
 window.loginGoogle = async () => {
   try {
-    await signInWithPopup(auth, googleProvider);
+    await signInWithRedirect(auth, googleProvider);
   } catch(e) {
     console.error('Login error:', e);
   }
@@ -1651,6 +1651,9 @@ window.logoutAndReset = async () => {
   sessionStorage.removeItem(CACHE_KEY);
   await signOut(auth);
 };
+
+// Manejar resultado del redirect de Google
+getRedirectResult(auth).catch(e => console.error('Redirect error:', e));
 
 // Auth state listener — controla todo el flujo
 onAuthStateChanged(auth, async (user) => {
