@@ -856,6 +856,7 @@ let editingRecetaId = null;
 
 const UNIDADES = ['g','kg','ml','L','u','cdita','cda','taza'];
 const UNIDAD_A_BASE = { g:1, kg:1000, ml:1, L:1000, u:1, cdita:5, cda:15, taza:240 };
+const UNIDAD_EQUIV = { cdita:'≈ 5ml', cda:'≈ 15ml', taza:'≈ 240ml' };
 
 // presentations: { "pid_idx": { qty, unit } }
 let presentations = {};
@@ -1176,7 +1177,10 @@ function renderIngTable() {
       <td class="td-name">${ing.nombre} <span style="font-size:11px;color:var(--ink3)">${ing.provName}</span></td>
       <td class="td-qty"><input class="ing-qty-inp" type="number" min="0" step="any" value="${ing.cantidad}"
         onchange="updateIngCant(${i},this.value)" onfocus="this.select()"></td>
-      <td class="td-unit"><select class="ing-unit-sel" onchange="updateIngUnit(${i},this.value)">${unitOpts}</select></td>
+      <td class="td-unit" style="display:flex;align-items:center;gap:4px">
+        <select class="ing-unit-sel" onchange="updateIngUnit(${i},this.value)">${unitOpts}</select>
+        <span style="font-size:10px;color:var(--ink3);white-space:nowrap" id="uequiv-${i}">${UNIDAD_EQUIV[ing.unidad]||''}</span>
+      </td>
       <td class="td-cost">${costo !== null ? fmtPrecio(costo) : '<span style="color:var(--ink3);font-style:italic">sin precio</span>'}</td>
       <td class="td-del"><button class="ing-del-btn" onclick="removeIngrediente(${i})">✕</button></td>
     </tr>`;
@@ -1207,6 +1211,8 @@ window.updateIngCant = (i, val) => {
 
 window.updateIngUnit = (i, val) => {
   recIngredientes[i].unidad = val;
+  const equiv = document.getElementById(`uequiv-${i}`);
+  if (equiv) equiv.textContent = UNIDAD_EQUIV[val] || '';
   updateIngCant(i, recIngredientes[i].cantidad);
 };
 
@@ -1272,6 +1278,7 @@ window.guardarReceta = async () => {
       const ref = await addDoc(collection(db,'recetas'), receta);
       receta.id = ref.id;
       recetas.push(receta);
+      recetas.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}));
     }
   } catch(e) {
     receta.id = editingRecetaId || Date.now().toString();
@@ -1302,7 +1309,7 @@ window.eliminarReceta = async (id) => {
 async function loadRecetas() {
   try {
     const snap = await getDocs(collection(db,'recetas'));
-    recetas = snap.docs.map(d=>({id:d.id,...d.data()}));
+    recetas = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}));
   } catch(e) { recetas = []; }
 }
 
