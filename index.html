@@ -2591,6 +2591,7 @@ function openModal(pid){
   document.getElementById('modalSubtitle').textContent=[p.tel?`📞 ${fmtTel(p.tel)}`:null,PAGO_LABEL[p.pago]].filter(Boolean).join('  ·  ');
   document.getElementById('modalMsg').textContent=msg;
   const btn=document.getElementById('btnSendWa');
+  btn.onclick = () => sendWhatsApp(); // restore default onclick
   if(p.tel){btn.textContent='WhatsApp ↗';btn.classList.remove('no-tel');}
   else{btn.textContent='Sin número registrado';btn.classList.add('no-tel');}
   document.getElementById('modalOverlay').classList.add('open');
@@ -2611,10 +2612,13 @@ window.showAllMessages=()=>{
     txt+='\n';
   });
   document.getElementById('modalTitle').textContent='Resumen de pedidos';
-  document.getElementById('modalSubtitle').textContent=`${active.length} proveedores con pedido`;
+  document.getElementById('modalSubtitle').textContent=`${active.length} proveedores · Enviá cada uno desde su tarjeta`;
   document.getElementById('modalMsg').textContent=txt.trim();
-  document.getElementById('btnSendWa').textContent='Enviar uno por uno ↑';
-  document.getElementById('btnSendWa').classList.add('no-tel');
+  // Hide WhatsApp button in summary mode, show only copy
+  const btn=document.getElementById('btnSendWa');
+  btn.textContent='Cerrar';
+  btn.classList.add('no-tel');
+  btn.onclick = () => closeModalDirect();
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 };
@@ -2630,8 +2634,10 @@ window.copyMessage=()=>{
 window.sendWhatsApp=()=>{
   if(!currentModalProvider)return;
   const p=PROVIDERS.find(x=>x.id===currentModalProvider);
-  if(!p.tel)return;
+  if(!p?.tel)return;
+  guardarPedidoPendiente(currentModalProvider);
   window.open(`https://wa.me/54${p.tel.replace(/\D/g,'')}?text=${encodeURIComponent(document.getElementById('modalMsg').textContent)}`,'_blank');
+  closeModalDirect();
 };
 
 function updateSummaryBar(){
