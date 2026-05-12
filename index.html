@@ -229,6 +229,20 @@
   .pago-badge.vence-manana { background: #FEF9C3; color: #854D0E; }
   .pago-badge.pendiente { background: #EDE9FE; color: #5B21B6; }
   .pago-venc-warn { background: #FEF3C7; padding: 5px 14px; font-size: 11px; color: #92400E; display: flex; align-items: center; gap: 5px; border-top: 1px solid #FDE68A; }
+  .btn-stats-prov { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
+  .btn-stats-prov:hover { background: var(--surface2); color: var(--ink); }
+  .stats-modal { background: var(--surface); border-radius: 16px; padding: 28px; width: 100%; max-width: 520px; max-height: 80vh; overflow-y: auto; animation: slideUp 0.2s ease; }
+  .stats-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .stats-sub { font-size: 13px; color: var(--ink2); margin-bottom: 20px; }
+  .stats-mes { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .stats-mes-header { padding: 10px 14px; background: var(--surface2); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; }
+  .stats-mes-total { font-family: 'DM Mono', monospace; color: var(--accent); font-size: 14px; }
+  .stats-mes-body { padding: 8px 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stats-pago-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .stats-pago-row:last-child { border-bottom: none; }
+  .stats-pago-fecha { color: var(--ink2); font-family: 'DM Mono', monospace; }
+  .stats-pago-monto { font-weight: 600; color: var(--ink); }
+  .stats-pago-medio { font-size: 10px; color: var(--ink3); }
   #viewPendientes { display: none; }
   .pend-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
   .pend-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
@@ -693,6 +707,20 @@
       <button onclick="crearInsumoDesdeSearch()" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:7px 16px;border-radius:7px;border:none;background:var(--accent);color:#fff;cursor:pointer">+ Crear insumo</button>
     </div>
     <div class="ins-grid" id="insGrid"></div>
+  </div>
+</div>
+
+<!-- MODAL ESTADÍSTICAS PROVEEDOR -->
+<div class="rec-modal-overlay" id="statsModalOverlay" onclick="if(event.target===this)cerrarStatsModal()">
+  <div class="stats-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div class="stats-title" id="statsModalTitle">Estadísticas</div>
+        <div class="stats-sub" id="statsModalSub"></div>
+      </div>
+      <button class="modal-close" onclick="cerrarStatsModal()">×</button>
+    </div>
+    <div id="statsModalBody"></div>
   </div>
 </div>
 
@@ -2638,6 +2666,15 @@ window.renderPagos = () => {
       const warn = (est === 'vence-manana') ?
         `<div class="pago-venc-warn">⚠️ Este pago vence mañana — ${vencStr}</div>` : '';
 
+      // Calcular total estimado del pedido
+      const totalEstimado = p.items?.reduce((acc, it) => {
+        const pidx = PROVIDERS.find(pr => pr.id === p.provId);
+        const idx = pidx?.products?.indexOf(it.nombre) ?? -1;
+        const k = idx >= 0 ? key(p.provId, idx) : null;
+        const pr = k ? prices[k] : null;
+        return acc + (pr && it.cantidad ? pr * it.cantidad : 0);
+      }, 0) || 0;
+
       return `<div class="pago-card ${est}">
         ${warn}
         <div class="pago-card-row">
@@ -2664,15 +2701,26 @@ window.renderPagos = () => {
             <option value="transfer" ${p.pago?.medio==='transfer'?'selected':''}>Transferencia</option>
             <option value="efectivo" ${p.pago?.medio==='efectivo'?'selected':''}>Efectivo</option>
           </select>
+          <span style="font-size:11px;color:var(--ink3)">$ Monto:</span>
+          <input type="number" id="monto-${p.id}" class="precio-input" style="width:100px;font-size:12px"
+            placeholder="${totalEstimado > 0 ? Math.round(totalEstimado).toLocaleString('es-AR') : 'Ingresá'}"
+            value="${p.pago?.monto || (totalEstimado > 0 ? Math.round(totalEstimado) : '')}"
+            onfocus="this.select()">
           <button class="btn-pagar" onclick="marcarPagadoDesde('${p.id}')" style="font-size:11px;padding:5px 10px">💳 Pagar</button>
-        </div>` : ''}
+        </div>` : `
+        <div class="pago-card-row" style="padding-top:0">
+          <span style="font-size:12px;font-weight:600;color:var(--accent)">💰 $${(p.pago?.monto||0).toLocaleString('es-AR')}</span>
+        </div>`}
       </div>`;
     }).join('');
 
     return `<div class="pagos-prov-block">
       <div class="pagos-prov-header">
         <span>${prov.provName}</span>
-        <span class="pagos-prov-stats">${pagados}/${total} pagados${vencidos ? ` · ${vencidos} vencido${vencidos>1?'s':''}` : ''}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="pagos-prov-stats">${pagados}/${total} pagados${vencidos ? ` · ${vencidos} vencido${vencidos>1?'s':''}` : ''}</span>
+          <button class="btn-stats-prov" onclick="verEstadisticasProv('${prov.provName}')">📊 Stats</button>
+        </div>
       </div>
       ${itemsHtml}
     </div>`;
@@ -2683,15 +2731,68 @@ window.marcarPagadoDesde = async (id) => {
   const p = pedidosPendientes.find(x => x.id === id);
   if (!p) return;
   const medio = document.getElementById(`mpago-${id}`)?.value || 'transfer';
+  const montoInput = document.getElementById(`monto-${id}`)?.value;
+  const monto = parseFloat(montoInput) || 0;
   const ahora = new Date().toISOString();
   if (!p.pago) p.pago = {};
   p.pago.pagado = true;
   p.pago.fechaPago = ahora;
   p.pago.medio = medio;
+  p.pago.monto = monto;
   try { await setDoc(doc(db,'pedidosPendientes',id), {pago: p.pago}, {merge:true}); } catch(e) {}
-  showToast(`✓ Pago registrado — ${medio === 'efectivo' ? 'Efectivo' : 'Transferencia'}`);
+  showToast(`✓ Pago registrado — ${medio === 'efectivo' ? 'Efectivo' : 'Transferencia'}${monto ? ` · $${Math.round(monto).toLocaleString('es-AR')}` : ''}`);
   renderPagos();
   updatePagosBadge();
+};
+
+window.verEstadisticasProv = (provName) => {
+  const pagados = pedidosPendientes.filter(p =>
+    p.provName === provName && p.pago?.pagado && p.pago?.monto > 0
+  );
+
+  // Agrupar por mes
+  const porMes = {};
+  pagados.forEach(p => {
+    const fecha = new Date(p.pago.fechaPago);
+    const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}`;
+    const mesLabel = fecha.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+    if (!porMes[mesKey]) porMes[mesKey] = { label: mesLabel, pagos: [], total: 0 };
+    porMes[mesKey].pagos.push(p);
+    porMes[mesKey].total += p.pago.monto;
+  });
+
+  const meses = Object.keys(porMes).sort().reverse();
+  const totalGeneral = pagados.reduce((a,p) => a + (p.pago?.monto||0), 0);
+
+  document.getElementById('statsModalTitle').textContent = `📊 ${provName}`;
+  document.getElementById('statsModalSub').textContent = `${pagados.length} pagos · Total: $${Math.round(totalGeneral).toLocaleString('es-AR')}`;
+
+  document.getElementById('statsModalBody').innerHTML = meses.length === 0
+    ? `<div style="text-align:center;color:var(--ink3);padding:30px">Sin pagos registrados con monto</div>`
+    : meses.map(mk => {
+        const mes = porMes[mk];
+        const pagosHtml = mes.pagos
+          .sort((a,b) => b.pago.fechaPago.localeCompare(a.pago.fechaPago))
+          .map(p => `
+            <div class="stats-pago-row">
+              <span class="stats-pago-fecha">${new Date(p.pago.fechaPago).toLocaleDateString('es-AR',{day:'numeric',month:'short'})}</span>
+              <span class="stats-pago-monto">$${Math.round(p.pago.monto).toLocaleString('es-AR')}</span>
+              <span class="stats-pago-medio">${p.pago.medio==='efectivo'?'Efectivo':'Transfer'}</span>
+            </div>`).join('');
+        return `<div class="stats-mes">
+          <div class="stats-mes-header">
+            <span>${mes.label.charAt(0).toUpperCase() + mes.label.slice(1)}</span>
+            <span class="stats-mes-total">$${Math.round(mes.total).toLocaleString('es-AR')}</span>
+          </div>
+          <div class="stats-mes-body">${pagosHtml}</div>
+        </div>`;
+      }).join('');
+
+  document.getElementById('statsModalOverlay').classList.add('open');
+};
+
+window.cerrarStatsModal = () => {
+  document.getElementById('statsModalOverlay').classList.remove('open');
 };
 let pedidosPendientes = [];
 
@@ -3385,6 +3486,7 @@ document.addEventListener('keydown', (e) => {
     if (document.getElementById('catPickerOverlay').classList.contains('open')) cerrarCatPicker();
     if (document.getElementById('nuevoInsumoOverlay')?.classList.contains('open')) cerrarModalNuevoInsumo();
     if (document.getElementById('editInsumoOverlay')?.classList.contains('open')) cerrarEditInsumo();
+    if (document.getElementById('statsModalOverlay')?.classList.contains('open')) cerrarStatsModal();
   }
 });
 </script>
