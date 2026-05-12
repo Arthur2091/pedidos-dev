@@ -232,8 +232,21 @@
   .btn-recibido:hover { background: #235c42; }
   .btn-del-pend { font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--ink3); cursor: pointer; }
   .btn-del-pend:hover { background: #FEE2E2; color: #B91C1C; border-color: #B91C1C; }
-  .pend-empty { text-align: center; padding: 60px 20px; color: var(--ink3); font-size: 14px; }
-  .pend-empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .pend-pago-panel { background: var(--surface2); border-top: 1px solid var(--border); padding: 12px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .pend-pago-title { font-size: 12px; font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .pend-pago-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pend-pago-label { font-size: 12px; color: var(--ink2); flex-shrink: 0; }
+  .pend-pago-sel { font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; cursor: pointer; }
+  .pend-pago-sel:focus { border-color: var(--accent); }
+  .pend-vencimiento { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+  .pend-vencimiento.vencido { background: #FEE2E2; color: #B91C1C; }
+  .pend-vencimiento.hoy { background: #FEF3C7; color: #92400E; }
+  .pend-vencimiento.ok { background: #D1FAE5; color: #065F46; }
+  .pend-vencimiento.contado { background: #EDE9FE; color: #5B21B6; }
+  .btn-pagar { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 7px; border: none; background: #7C3AED; color: #fff; cursor: pointer; }
+  .btn-pagar:hover { background: #6D28D9; }
+  .pend-pagado-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #065F46; background: #D1FAE5; padding: 4px 10px; border-radius: 6px; }
+  .pend-recepcion-fecha { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
 
   /* INSUMOS POR CATEGORÍA */
   #viewInsumos { display: none; }
@@ -872,16 +885,16 @@ let prices = {};
 let historial = [];
 
 const PROVIDERS = [
-  { id:"quintela",  name:"Quintela",                  cat:"almacen",     tel:"1169886530", pago:"transfer", products:["Aceite girasol","Azucar muñeca","Anchoas","Caldo Deshidratado","Durazno en lata","Mayonesa Hellmans","Ketchup Sobre","Muzzarella","Mostaza","Pan rallado","Sal fina","Tomate perita","Tomate triturado","Vinagre x Litro","Cafe soluble instantaneo","Fritolin","Maizena","Polvo de hornear","Fideos Mostachol/Codito","Sal fina en sobre","Sobre ind. Mayonesa","Sobre ind. Ketchup","Sobre ind. Mostaza"] },
-  { id:"criollo",   name:"Criollo",                   cat:"reposteria",  tel:"1168879202", pago:"transfer", products:["Margarina Hojaldre","Triturado el criollo","Esencia de vainilla 2L","Extracto de malta","Nutella","Tia maria","Chocolate aguila barra","Te green Hills","Te inti zen"] },
-  { id:"milkaut",   name:"Milkaut",                   cat:"lacteos",     tel:"",           pago:"transfer", products:["Cheddar pouch","Crema de leche pouch"] },
-  { id:"semas",     name:"Semas",                     cat:"fiambres",    tel:"",           pago:"transfer", products:["Queso Brie","Panceta","Jamon Cocido","Jamon Crudo","Regianito"] },
-  { id:"cuyaires",  name:"Cuyaires",                  cat:"especias",    tel:"1160202609", pago:"transfer", products:["Aji molido","Comino","Curry","Garbanzo M","Harina de Garbanzo","Nuez molida","Oregano","Pasas negras","Pimenton","Semillas Girasol","Semillas Sesamo Blancas","Semillas Sesamo Negras","Amapolas"] },
-  { id:"carne",     name:"Carne",                     cat:"carnes",      tel:"1166843938", pago:"transfer", products:["Roast Beef P","Paleta Entera","Suprema 15kg"] },
-  { id:"aceite",    name:"Aceite Freidoras",           cat:"almacen",     tel:"1158376955", pago:"efectivo", products:["Aceite Freidoras"] },
-  { id:"manteca",   name:"Manteca Parada / Bermudez", cat:"reposteria",  tel:"1150489357", pago:"transfer", products:["Azucar Bolsa 50kg","Manteca (4Px5k)","Miel x 5kg"] },
-  { id:"iceferas",  name:"Iceferas SRL",              cat:"congelados",  tel:"1131658780", pago:"efectivo", products:["Mix frutos rojos","Frambuesas"] },
-  { id:"porto",     name:"Porto Expreso",             cat:"cafe",        tel:"",           pago:"ambos",    products:["Cafe en grano","Cafe Molido (Cold Brew)","Cuartitos (Molido)","Cuartitos (Grano)","Syrup Vainilla","Syrup Avellana","Syrup Caramelo","Pulpa de frutilla","Sobres de azucar","Sobres de Hileret individual"] },
+  { id:"quintela",  name:"Quintela",                  cat:"almacen",     tel:"1169886530", pago:"transfer", condPago:"7dias",   products:["Aceite girasol","Azucar muñeca","Anchoas","Caldo Deshidratado","Durazno en lata","Mayonesa Hellmans","Ketchup Sobre","Muzzarella","Mostaza","Pan rallado","Sal fina","Tomate perita","Tomate triturado","Vinagre x Litro","Cafe soluble instantaneo","Fritolin","Maizena","Polvo de hornear","Fideos Mostachol/Codito","Sal fina en sobre","Sobre ind. Mayonesa","Sobre ind. Ketchup","Sobre ind. Mostaza"] },
+  { id:"criollo",   name:"Criollo",                   cat:"reposteria",  tel:"1168879202", pago:"transfer", condPago:"7dias",   products:["Margarina Hojaldre","Triturado el criollo","Esencia de vainilla 2L","Extracto de malta","Nutella","Tia maria","Chocolate aguila barra","Te green Hills","Te inti zen"] },
+  { id:"milkaut",   name:"Milkaut",                   cat:"lacteos",     tel:"",           pago:"transfer", condPago:"7dias",   products:["Cheddar pouch","Crema de leche pouch"] },
+  { id:"semas",     name:"Semas",                     cat:"fiambres",    tel:"",           pago:"transfer", condPago:"7dias",   products:["Queso Brie","Panceta","Jamon Cocido","Jamon Crudo","Regianito"] },
+  { id:"cuyaires",  name:"Cuyaires",                  cat:"especias",    tel:"1160202609", pago:"transfer", condPago:"15dias",  products:["Aji molido","Comino","Curry","Garbanzo M","Harina de Garbanzo","Nuez molida","Oregano","Pasas negras","Pimenton","Semillas Girasol","Semillas Sesamo Blancas","Semillas Sesamo Negras","Amapolas"] },
+  { id:"carne",     name:"Carne",                     cat:"carnes",      tel:"1166843938", pago:"transfer", condPago:"7dias",   products:["Roast Beef P","Paleta Entera","Suprema 15kg"] },
+  { id:"aceite",    name:"Aceite Freidoras",           cat:"almacen",     tel:"1158376955", pago:"efectivo", condPago:"contado", products:["Aceite Freidoras"] },
+  { id:"manteca",   name:"Manteca Parada / Bermudez", cat:"reposteria",  tel:"1150489357", pago:"transfer", condPago:"7dias",   products:["Azucar Bolsa 50kg","Manteca (4Px5k)","Miel x 5kg"] },
+  { id:"iceferas",  name:"Iceferas SRL",              cat:"congelados",  tel:"1131658780", pago:"efectivo", condPago:"contado", products:["Mix frutos rojos","Frambuesas"] },
+  { id:"porto",     name:"Porto Expreso",             cat:"cafe",        tel:"",           pago:"ambos",    condPago:"15dias",  products:["Cafe en grano","Cafe Molido (Cold Brew)","Cuartitos (Molido)","Cuartitos (Grano)","Syrup Vainilla","Syrup Avellana","Syrup Caramelo","Pulpa de frutilla","Sobres de azucar","Sobres de Hileret individual"] },
   { id:"papelera",  name:"Papelera Ormazabal",        cat:"descartables",tel:"1127567174", pago:"transfer", products:["Aluminio","Arranque 15x20","Arranque 20x30","Arranque 40x50","Bolsa FM7","Bolsa pp 15x20 (Cookies)","Bolsa pp 6x25 (cubierto)","Bolsa pp 8x5 (Queso)","Camiseta 30x40","Camiseta 40x50","Camiseta 50x60","Dips 80CC","Tapa Dip","Estuche Pet 133 (Tortas)","Film","Folex Grandes","Mangas Descartables (Rollo)","P14 (Molde Tarta)","Papel Manteca","Parafinado","Tapa Plato Vianda","Plato Vianda","Pote Acanalado 390CC","R3(F75) Aluminio con tapa","Removedores Madera","Rollos Comandera 50x80/30x80","Rollos de Cocina","Servilletas 33x33","Sorbetes","Vasos"] },
   { id:"limpieza",  name:"Limpieza",                  cat:"limpieza",    tel:"1169013777", pago:"transfer", products:["Alcohol en bidon","Consorcio 80x110","Bolsa Residuo 50x70","Bolsa Verde 80x110","Ceramicol (BLEM)","Desodorante de piso","Desengrasante","Detergente","Escobillon","Esponja de Fibra Verde","Esponja Lisa Chica","Guantes naranja M","Jabon liquido","Jabon blanco","Lavandina","Lavandina en Gel","Limpiavidrios","Odex cremoso (CIF)","Palo escobillon","Papel Higienico Cono GD","Rejilla Make","Repasadores","Rollo de cocina","Secador NUMERO 40","Trapo de piso 50x60 gris","Alcohol en gel"] },
   { id:"verduleria",name:"Verdulería",                cat:"verduleria",  tel:"1159325905", pago:"transfer", products:["Acelga","Ajo","Albahaca (paq)","Banana","Berenjena","Brocoli","Cebolla (bolsa)","Cebolla morada","Champi (ban)","Cilantro (paq)","Calabaza (bolsa)","Coliflor","Espinaca (cajon)","Jengibre","Lechuga Criolla (cajon)","Lechuga Morada (cajon)","Limon (cajon)","Manzana Verde","Menta (paq)","Morron","Naranja (cajon)","Palta","Papa (bolsa)","Pepino","Perejil","Puerro (paq)","Repollo Blanco","Repollo Morado","Rucula","Tomate perita","Tomate cherry","Zapallito","Zanahoria","Radicheta"] },
@@ -894,6 +907,8 @@ const PROVIDERS = [
 const CATS = { almacen:"Almacén", reposteria:"Repostería", lacteos:"Lácteos", fiambres:"Fiambres", especias:"Especias", carnes:"Carnes", congelados:"Congelados", cafe:"Café", descartables:"Descartables", limpieza:"Limpieza", verduleria:"Verdulería", bebidas:"Bebidas" };
 const PAGO_LABEL = { transfer:"Transferencia", efectivo:"Efectivo", ambos:"Transfer / Efectivo" };
 const PAGO_CHIP  = { transfer:"chip chip-transfer", efectivo:"chip chip-efectivo", ambos:"chip chip-ambos" };
+const COND_PAGO_LABEL = { contado:'Contado', '7dias':'7 días', '15dias':'15 días' };
+const COND_PAGO_DIAS  = { contado:0, '7dias':7, '15dias':15 };
 
 const state = {};
 PROVIDERS.forEach(p => {
@@ -2511,39 +2526,77 @@ window.renderPendientes = () => {
     return;
   }
 
-  // Separar: con fecha de entrega y sin fecha
   const conFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && p.fechaEntrega);
   const sinFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && !p.fechaEntrega);
   const recibidos = pedidosPendientes.filter(p => p.estado === 'recibido');
 
-  // Con fecha → ordenar por fecha de entrega asc
   conFecha.sort((a,b) => a.fechaEntrega.localeCompare(b.fechaEntrega));
-  // Sin fecha → ordenar por fecha de pedido asc (orden de carga)
   sinFecha.sort((a,b) => {
     const fa = a.fechaPedido?.toDate ? a.fechaPedido.toDate() : new Date(0);
     const fb = b.fechaPedido?.toDate ? b.fechaPedido.toDate() : new Date(0);
     return fa - fb;
   });
-  // Recibidos → más recientes primero
-  recibidos.sort((a,b) => {
-    const fa = a.fechaPedido?.toDate ? a.fechaPedido.toDate() : new Date(0);
-    const fb = b.fechaPedido?.toDate ? b.fechaPedido.toDate() : new Date(0);
-    return fb - fa;
+
+  // Agrupar recibidos por proveedor
+  const recibidosPorProv = {};
+  recibidos.forEach(p => {
+    if (!recibidosPorProv[p.provId]) recibidosPorProv[p.provId] = { provName: p.provName, items: [] };
+    recibidosPorProv[p.provId].items.push(p);
+  });
+  // Ordenar proveedores A→Z
+  const provsSorted = Object.values(recibidosPorProv).sort((a,b) => a.provName.localeCompare(b.provName,'es',{sensitivity:'base'}));
+  // Dentro de cada proveedor ordenar por fecha de entrega
+  provsSorted.forEach(prov => {
+    prov.items.sort((a,b) => {
+      if (a.fechaEntrega && b.fechaEntrega) return a.fechaEntrega.localeCompare(b.fechaEntrega);
+      return a.fechaEntrega ? -1 : 1;
+    });
   });
 
-  const sorted = [...conFecha, ...sinFecha, ...recibidos];
-
-  list.innerHTML = sorted.map(p => {
+  const renderCard = (p) => {
     const fecha = p.fechaPedido?.toDate ? p.fechaPedido.toDate() : new Date();
     const fechaStr = fecha.toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
     const isRecibido = p.estado === 'recibido';
     const sinFechaEntrega = !isRecibido && !p.fechaEntrega;
 
-    // Format fechaEntrega nicely
     let fechaEntregaStr = '';
     if (p.fechaEntrega) {
       const [y,m,d] = p.fechaEntrega.split('-');
       fechaEntregaStr = new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
+    }
+
+    // Panel de pago para recibidos
+    let pagoPanel = '';
+    if (isRecibido) {
+      const pago = p.pago || {};
+      const hoy = new Date().toISOString().split('T')[0];
+      const venc = pago.vencimiento || '';
+      const vencClass = !venc ? 'contado' : venc < hoy ? 'vencido' : venc === hoy ? 'hoy' : 'ok';
+      const vencLabel = !venc || pago.condicion === 'contado' ? 'Contado' :
+        new Date(venc+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+      const recepFecha = p.fechaRecepcion ? new Date(p.fechaRecepcion).toLocaleString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+
+      pagoPanel = `<div class="pend-pago-panel">
+        <div class="pend-pago-title">💳 Pago</div>
+        ${recepFecha ? `<div class="pend-recepcion-fecha">Recibido: ${recepFecha}</div>` : ''}
+        ${pago.pagado
+          ? `<div class="pend-pagado-badge">✅ Pagado el ${new Date(pago.fechaPago).toLocaleString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} — ${pago.medio==='efectivo'?'Efectivo':'Transferencia'}</div>`
+          : `<div class="pend-pago-row">
+              <span class="pend-pago-label">Condición:</span>
+              <select class="pend-pago-sel" onchange="guardarCondPago('${p.id}',this.value)">
+                <option value="contado" ${pago.condicion==='contado'?'selected':''}>Contado</option>
+                <option value="7dias" ${pago.condicion==='7dias'?'selected':''}>7 días</option>
+                <option value="15dias" ${pago.condicion==='15dias'?'selected':''}>15 días</option>
+              </select>
+              <span class="pend-vencimiento ${vencClass}">📅 ${vencLabel}</span>
+              <span class="pend-pago-label">Medio:</span>
+              <select class="pend-pago-sel" id="medio-${p.id}">
+                <option value="transfer" ${pago.medio==='transfer'?'selected':''}>Transferencia</option>
+                <option value="efectivo" ${pago.medio==='efectivo'?'selected':''}>Efectivo</option>
+              </select>
+              <button class="btn-pagar" onclick="marcarPagado('${p.id}')">💳 Marcar pagado</button>
+            </div>`}
+      </div>`;
     }
 
     return `<div class="pend-card ${isRecibido ? 'recibido' : ''}" id="pend-${p.id}">
@@ -2578,8 +2631,26 @@ window.renderPendientes = () => {
           <button class="btn-del-pend" onclick="eliminarPendiente('${p.id}')">🗑</button>
         </div>
       </div>
+      ${pagoPanel}
     </div>`;
-  }).join('');
+  };
+
+  let html = [...conFecha, ...sinFecha].map(renderCard).join('');
+
+  // Recibidos agrupados por proveedor
+  if (provsSorted.length) {
+    html += `<div style="margin-top:24px;padding-top:16px;border-top:2px solid var(--border)">
+      <div style="font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">✅ Recibidos</div>`;
+    provsSorted.forEach(prov => {
+      html += `<div style="margin-bottom:20px">
+        <div style="font-size:12px;font-weight:600;color:var(--ink3);margin-bottom:8px;padding-left:4px;text-transform:uppercase;letter-spacing:0.4px">${prov.provName}</div>
+        ${prov.items.map(renderCard).join('')}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  list.innerHTML = html;
 };
 
 window.guardarFechaEntrega = async (id, fecha) => {
@@ -2593,9 +2664,58 @@ window.guardarFechaEntrega = async (id, fecha) => {
 window.marcarRecibido = async (id) => {
   const p = pedidosPendientes.find(x => x.id === id);
   if (!p) return;
+  const prov = PROVIDERS.find(x => x.id === p.provId);
+  const condPago = prov?.condPago || 'contado';
+  const medioPago = prov?.pago === 'efectivo' ? 'efectivo' : 'transfer';
+  const ahora = new Date();
+  // Calcular vencimiento
+  const diasPago = COND_PAGO_DIAS[condPago] || 0;
+  const fechaBase = p.fechaEntrega ? new Date(p.fechaEntrega + 'T12:00:00') : ahora;
+  const vencimiento = new Date(fechaBase);
+  vencimiento.setDate(vencimiento.getDate() + diasPago);
+  const vencimientoStr = vencimiento.toISOString().split('T')[0];
+
   p.estado = 'recibido';
-  try { await setDoc(doc(db,'pedidosPendientes',id), {estado:'recibido'}, {merge:true}); } catch(e) {}
+  p.fechaRecepcion = ahora.toISOString();
+  p.pago = { condicion: condPago, medio: medioPago, vencimiento: vencimientoStr, pagado: false, fechaPago: null };
+
+  try {
+    await setDoc(doc(db,'pedidosPendientes',id), {
+      estado: 'recibido',
+      fechaRecepcion: serverTimestamp(),
+      pago: p.pago
+    }, {merge:true});
+  } catch(e) {}
   showToast(`✓ Pedido de ${p.provName} marcado como recibido`);
+  renderPendientes();
+};
+
+window.marcarPagado = async (id) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  const medio = document.getElementById(`medio-${id}`)?.value || p.pago?.medio || 'transfer';
+  const ahora = new Date().toISOString();
+  if (!p.pago) p.pago = {};
+  p.pago.pagado = true;
+  p.pago.fechaPago = ahora;
+  p.pago.medio = medio;
+  try { await setDoc(doc(db,'pedidosPendientes',id), {pago: p.pago}, {merge:true}); } catch(e) {}
+  showToast(`✓ Pago registrado — ${medio === 'efectivo' ? 'Efectivo' : 'Transferencia'}`);
+  renderPendientes();
+};
+
+window.guardarCondPago = async (id, condicion) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  if (!p.pago) p.pago = {};
+  p.pago.condicion = condicion;
+  // Recalcular vencimiento
+  const diasPago = COND_PAGO_DIAS[condicion] || 0;
+  const fechaBase = p.fechaEntrega ? new Date(p.fechaEntrega + 'T12:00:00') : new Date();
+  const vencimiento = new Date(fechaBase);
+  vencimiento.setDate(vencimiento.getDate() + diasPago);
+  p.pago.vencimiento = vencimiento.toISOString().split('T')[0];
+  try { await setDoc(doc(db,'pedidosPendientes',id), {pago: p.pago}, {merge:true}); } catch(e) {}
   renderPendientes();
 };
 
