@@ -2718,13 +2718,14 @@ async function guardarPedidoPendiente(pid) {
 
 window.renderPendientes = () => {
   const list = document.getElementById('pendList');
-  if (!pedidosPendientes.length) {
-    list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🚚</div>No hay pedidos pendientes.<br>Los pedidos enviados por WhatsApp aparecerán acá.</div>`;
-    return;
-  }
-
   const conFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && p.fechaEntrega);
   const sinFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && !p.fechaEntrega);
+
+  if (!conFecha.length && !sinFecha.length) {
+    list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🚚</div>No hay pedidos pendientes de entrega.<br>Los pedidos enviados por WhatsApp aparecerán acá.</div>`;
+    updatePagosBadge();
+    return;
+  }
 
   conFecha.sort((a,b) => a.fechaEntrega.localeCompare(b.fechaEntrega));
   sinFecha.sort((a,b) => {
@@ -2832,12 +2833,6 @@ window.renderPendientes = () => {
   };
 
   let html = [...conFecha, ...sinFecha].map(renderCard).join('');
-
-  if (!conFecha.length && !sinFecha.length) {
-    list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🚚</div>No hay pedidos pendientes de entrega.<br>Los pedidos enviados por WhatsApp aparecerán acá.</div>`;
-    updatePagosBadge();
-    return;
-  }
 
   list.innerHTML = html;
   updatePagosBadge();
