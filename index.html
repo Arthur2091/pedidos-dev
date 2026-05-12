@@ -590,19 +590,32 @@
 
 <!-- MODAL NUEVO INSUMO -->
 <div class="rec-modal-overlay" id="nuevoInsumoOverlay">
-  <div style="background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:16px;animation:slideUp 0.2s ease">
+  <div style="background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:16px;animation:slideUp 0.2s ease;overflow-y:auto;max-height:90vh">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:16px;font-weight:600">Nuevo insumo</span>
       <button class="modal-close" onclick="cerrarModalNuevoInsumo()">×</button>
     </div>
     <div>
       <div class="rec-field-label">Nombre</div>
-      <input class="rec-field-input" id="niNombre" type="text" placeholder="Ej: Harina 000"
-        onkeydown="if(event.key==='Enter')document.getElementById('niProv').focus()">
+      <input class="rec-field-input" id="niNombre" type="text" placeholder="Ej: Harina 000">
     </div>
     <div>
       <div class="rec-field-label">Proveedor</div>
-      <select class="rec-field-input" id="niProv" style="cursor:pointer"></select>
+      <div style="display:flex;gap:8px">
+        <select class="rec-field-input" id="niProv" style="cursor:pointer;flex:1" onchange="checkNuevoProv()"></select>
+      </div>
+      <div id="niNuevoProvWrap" style="display:none;margin-top:8px;display:none">
+        <input class="rec-field-input" id="niNuevoProvNombre" type="text" placeholder="Nombre del nuevo proveedor"
+          style="margin-bottom:6px">
+        <div style="display:flex;gap:8px">
+          <input class="rec-field-input" id="niNuevoProvTel" type="text" placeholder="Teléfono (opcional)">
+          <select class="rec-field-input" id="niNuevoProvPago" style="cursor:pointer">
+            <option value="transfer">Transferencia</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="ambos">Ambos</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div>
       <div class="rec-field-label">Presentación <span style="font-weight:400;color:var(--ink3)">(opcional)</span></div>
@@ -610,7 +623,11 @@
         <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Cant." id="niPresQty"
           style="width:80px" onfocus="this.select()" oninput="updateNiEquiv()">
         <select class="ins-pres-unit" id="niPresUnit" onchange="updateNiEquiv()">
-          ${['kg','g','L','ml','u'].map(u=>`<option value="${u}">${u}</option>`).join('')}
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="L">L</option>
+          <option value="ml">ml</option>
+          <option value="u">u</option>
         </select>
         <span style="font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace" id="niEquiv"></span>
       </div>
@@ -1650,21 +1667,30 @@ window.crearInsumoDesdeSearch = () => {
   }, 150);
 };
 
+window.checkNuevoProv = () => {
+  const val = document.getElementById('niProv').value;
+  const wrap = document.getElementById('niNuevoProvWrap');
+  if (wrap) wrap.style.display = val === '__nuevo__' ? 'block' : 'none';
+};
+
 window.abrirModalNuevoInsumo = () => {
-  // Populate providers
+  // Populate providers with "Nuevo proveedor" option
   const provSel = document.getElementById('niProv');
-  provSel.innerHTML = PROVIDERS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  provSel.innerHTML = PROVIDERS.map(p => `<option value="${p.id}">${p.name}</option>`).join('') +
+    `<option value="__nuevo__">＋ Nuevo proveedor...</option>`;
   // Populate categories
   const catGrid = document.getElementById('niCatGrid');
   catGrid.innerHTML = CATEGORIAS_RECETA.map(cat => `
     <button class="cat-picker-btn" data-nicat="${cat.id}" onclick="selectNiCat('${cat.id}')">
       <span style="font-size:16px">${cat.icon}</span>${cat.label}
     </button>`).join('');
+  // Reset fields
   document.getElementById('niNombre').value = '';
-  const presQtyEl = document.getElementById('niPresQty');
-  if (presQtyEl) presQtyEl.value = '';
-  const niEquiv = document.getElementById('niEquiv');
-  if (niEquiv) niEquiv.textContent = '';
+  document.getElementById('niPresQty').value = '';
+  document.getElementById('niEquiv').textContent = '';
+  document.getElementById('niNuevoProvWrap').style.display = 'none';
+  document.getElementById('niNuevoProvNombre').value = '';
+  document.getElementById('niNuevoProvTel').value = '';
   document.getElementById('nuevoInsumoOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   setTimeout(() => document.getElementById('niNombre').focus(), 100);
@@ -1688,32 +1714,49 @@ window.updateNiEquiv = () => {
 
 window.guardarNuevoInsumo = async () => {
   const nombre = document.getElementById('niNombre').value.trim();
-  const pid = document.getElementById('niProv').value;
+  let pid = document.getElementById('niProv').value;
   const catBtn = document.querySelector('[data-nicat].current');
   const presQty = parseFloat(document.getElementById('niPresQty')?.value);
   const presUnit = document.getElementById('niPresUnit')?.value;
   if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
   if (!catBtn) { showToast('⚠ Seleccioná una categoría'); return; }
   const catId = catBtn.dataset.nicat;
+
+  // Crear nuevo proveedor si corresponde
+  if (pid === '__nuevo__') {
+    const provNombre = document.getElementById('niNuevoProvNombre').value.trim();
+    if (!provNombre) { showToast('⚠ Ingresá el nombre del proveedor'); return; }
+    const provTel = document.getElementById('niNuevoProvTel').value.trim().replace(/\D/g,'');
+    const provPago = document.getElementById('niNuevoProvPago').value;
+    pid = provNombre.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+    if (!PROVIDERS.find(p => p.id === pid)) {
+      const newProv = { id: pid, name: provNombre, cat: 'otros', tel: provTel, pago: provPago, products: [] };
+      PROVIDERS.push(newProv);
+      state[pid] = {};
+      try {
+        await setDoc(doc(db,'customProviders', pid), { name: provNombre, cat: 'otros', tel: provTel, pago: provPago, products: [], createdAt: serverTimestamp() });
+      } catch(e) {}
+      buildSingleCard(newProv);
+      addProviderToPrecios(newProv);
+      showToast(`✓ Proveedor "${provNombre}" creado`);
+    }
+  }
+
   const p = PROVIDERS.find(x => x.id === pid);
   if (p.products.map(x => x.toLowerCase()).includes(nombre.toLowerCase())) {
     showToast('⚠ Ya existe ese insumo en este proveedor'); return;
   }
-  // Add to provider alphabetically
   p.products.push(nombre);
   p.products.sort((a,b) => a.localeCompare(b,'es',{sensitivity:'base'}));
   await saveCustomProducts(pid, p.products);
-  // Assign category
   const newIdx = p.products.indexOf(nombre);
   const k = key(pid, newIdx);
   await saveInsumoCategory(k, catId);
-  // Save presentation if provided
   if (presQty && presUnit) {
     presentations[k] = { qty: presQty, unit: presUnit };
     try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
   }
   cerrarModalNuevoInsumo();
-  const catLabel = CATEGORIAS_RECETA.find(c=>c.id===catId)?.label;
   showToast(`✓ "${nombre}" agregado${presQty ? ` · ${presQty} ${presUnit}` : ''}`);
   renderInsumos();
   rebuildPedidosCard(pid);
