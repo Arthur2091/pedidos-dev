@@ -201,6 +201,40 @@
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 300; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* PEDIDOS PENDIENTES */
+  #viewPendientes { display: none; }
+  .pend-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .pend-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .pend-title { font-size: 18px; font-weight: 600; }
+  .pend-sub { font-size: 13px; color: var(--ink2); margin-top: 2px; }
+  .pend-list { display: flex; flex-direction: column; gap: 12px; }
+  .pend-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; transition: opacity 0.2s; }
+  .pend-card.recibido { opacity: 0.55; }
+  .pend-card-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+  .pend-card-dot { width: 10px; height: 10px; border-radius: 50%; background: #F59E0B; flex-shrink: 0; }
+  .pend-card-dot.recibido { background: var(--accent); }
+  .pend-card-info { flex: 1; }
+  .pend-card-prov { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+  .pend-card-fecha { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .pend-card-status.pendiente { background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .pend-card-status.recibido { background: #D1FAE5; color: #065F46; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .pend-card-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .pend-items { display: flex; flex-direction: column; gap: 3px; }
+  .pend-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .pend-item:last-child { border-bottom: none; }
+  .pend-item-name { color: var(--ink); }
+  .pend-item-qty { font-family: 'DM Mono', monospace; color: var(--ink2); font-size: 12px; }
+  .pend-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 4px; }
+  .pend-fecha-label { font-size: 12px; color: var(--ink2); font-weight: 500; flex-shrink: 0; }
+  .pend-fecha-inp { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); outline: none; cursor: pointer; }
+  .pend-fecha-inp:focus { border-color: var(--accent); }
+  .btn-recibido { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+  .btn-recibido:hover { background: #235c42; }
+  .btn-del-pend { font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--ink3); cursor: pointer; }
+  .btn-del-pend:hover { background: #FEE2E2; color: #B91C1C; border-color: #B91C1C; }
+  .pend-empty { text-align: center; padding: 60px 20px; color: var(--ink3); font-size: 14px; }
+  .pend-empty-icon { font-size: 40px; margin-bottom: 12px; }
+
   /* INSUMOS POR CATEGORÍA */
   #viewInsumos { display: none; }
   .ins-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
@@ -407,6 +441,7 @@
       <button class="nav-tab" data-view="historial" onclick="switchView('historial')">🕒 <span>Historial</span></button>
       <button class="nav-tab" data-view="recetas" onclick="switchView('recetas')">👨‍🍳 <span>Recetas</span></button>
       <button class="nav-tab" data-view="insumos" onclick="switchView('insumos')">🗂 <span>Insumos</span></button>
+      <button class="nav-tab" data-view="pendientes" onclick="switchView('pendientes')">🚚 <span>Pendientes</span></button>
     </nav>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
@@ -563,6 +598,19 @@
     <div class="cat-picker-sub" id="catPickerSub"></div>
     <div class="cat-picker-grid" id="catPickerGrid"></div>
     <button class="cat-picker-cancel" onclick="cerrarCatPicker()">Cancelar</button>
+  </div>
+</div>
+
+<!-- PENDIENTES VIEW -->
+<div id="viewPendientes">
+  <div class="pend-container">
+    <div class="pend-top">
+      <div>
+        <div class="pend-title">🚚 Pedidos pendientes de entrega</div>
+        <div class="pend-sub">Pedidos enviados por WhatsApp en espera de recepción</div>
+      </div>
+    </div>
+    <div class="pend-list" id="pendList"></div>
   </div>
 </div>
 
@@ -2226,6 +2274,7 @@ async function init() {
       loadCustomProviders(),
       loadRecetas(),
       loadInsumoCategories(),
+      loadPedidosPendientes(),
     ]);
     saveToCache();
   } catch(e) { console.warn('Firebase offline, using local mode'); }
@@ -2276,10 +2325,12 @@ window.switchView = (view) => {
   document.getElementById('viewHistorial').style.display= view==='historial'?'block':'none';
   document.getElementById('viewRecetas').style.display  = view==='recetas'  ?'block':'none';
   document.getElementById('viewInsumos').style.display  = view==='insumos'  ?'block':'none';
+  document.getElementById('viewPendientes').style.display= view==='pendientes'?'block':'none';
   document.getElementById('summaryBar').style.display   = view==='pedidos'  ?''    :'none';
   if(view==='historial') renderHistorial();
   if(view==='recetas') renderRecetas();
   if(view==='insumos') renderInsumos();
+  if(view==='pendientes') renderPendientes();
 };
 
 // FILTER BAR
@@ -2418,9 +2469,116 @@ function buildMessage(pid){
   return msg+`\n¡Gracias! 🙏`;
 }
 
+// ── PEDIDOS PENDIENTES ──
+let pedidosPendientes = [];
+
+async function loadPedidosPendientes() {
+  try {
+    const snap = await getDocs(query(collection(db,'pedidosPendientes'), orderBy('fechaPedido','desc')));
+    pedidosPendientes = snap.docs.map(d => ({id: d.id, ...d.data()}));
+  } catch(e) { pedidosPendientes = []; }
+}
+
+async function guardarPedidoPendiente(pid) {
+  const p = PROVIDERS.find(x => x.id === pid);
+  if (!p) return;
+  const items = Object.entries(state[pid]).map(([idx, qty]) => ({
+    nombre: p.products[parseInt(idx)],
+    cantidad: qty
+  }));
+  if (!items.length) return;
+  const pedido = {
+    provId: pid,
+    provName: p.name,
+    provTel: p.tel || '',
+    items,
+    fechaPedido: serverTimestamp(),
+    fechaEntrega: null,
+    estado: 'pendiente',
+    nota: ''
+  };
+  try {
+    const ref = await addDoc(collection(db,'pedidosPendientes'), pedido);
+    pedidosPendientes.unshift({id: ref.id, ...pedido, fechaPedido: {toDate: () => new Date()}});
+  } catch(e) {}
+}
+
+window.renderPendientes = () => {
+  const list = document.getElementById('pendList');
+  if (!pedidosPendientes.length) {
+    list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🚚</div>No hay pedidos pendientes.<br>Los pedidos enviados por WhatsApp aparecerán acá.</div>`;
+    return;
+  }
+  // Pendientes primero, luego recibidos
+  const sorted = [...pedidosPendientes].sort((a,b) => {
+    if (a.estado === b.estado) return 0;
+    return a.estado === 'pendiente' ? -1 : 1;
+  });
+  list.innerHTML = sorted.map(p => {
+    const fecha = p.fechaPedido?.toDate ? p.fechaPedido.toDate() : new Date();
+    const fechaStr = fecha.toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+    const fechaEntrega = p.fechaEntrega || '';
+    const isRecibido = p.estado === 'recibido';
+    return `<div class="pend-card ${isRecibido ? 'recibido' : ''}" id="pend-${p.id}">
+      <div class="pend-card-header">
+        <div class="pend-card-dot ${isRecibido ? 'recibido' : ''}"></div>
+        <div class="pend-card-info">
+          <div class="pend-card-prov">${p.provName}</div>
+          <div class="pend-card-fecha">Pedido: ${fechaStr}</div>
+        </div>
+        <span class="pend-card-status ${p.estado}">${isRecibido ? '✅ Recibido' : '⏳ Pendiente'}</span>
+      </div>
+      <div class="pend-card-body">
+        <div class="pend-items">
+          ${p.items.map(it => `
+            <div class="pend-item">
+              <span class="pend-item-name">${it.nombre}</span>
+              <span class="pend-item-qty">× ${it.cantidad}</span>
+            </div>`).join('')}
+        </div>
+        <div class="pend-footer">
+          <span class="pend-fecha-label">📅 Entrega:</span>
+          <input class="pend-fecha-inp" type="date" value="${fechaEntrega}"
+            ${isRecibido ? 'disabled' : ''}
+            onchange="guardarFechaEntrega('${p.id}', this.value)">
+          ${!isRecibido ? `<button class="btn-recibido" onclick="marcarRecibido('${p.id}')">✅ Marcar recibido</button>` : ''}
+          <button class="btn-del-pend" onclick="eliminarPendiente('${p.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.guardarFechaEntrega = async (id, fecha) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  p.fechaEntrega = fecha;
+  try { await setDoc(doc(db,'pedidosPendientes',id), {fechaEntrega: fecha}, {merge:true}); } catch(e) {}
+  showToast('✓ Fecha de entrega guardada');
+};
+
+window.marcarRecibido = async (id) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  p.estado = 'recibido';
+  try { await setDoc(doc(db,'pedidosPendientes',id), {estado:'recibido'}, {merge:true}); } catch(e) {}
+  showToast(`✓ Pedido de ${p.provName} marcado como recibido`);
+  renderPendientes();
+};
+
+window.eliminarPendiente = async (id) => {
+  if (!confirm('¿Eliminás este pedido del historial?')) return;
+  pedidosPendientes = pedidosPendientes.filter(x => x.id !== id);
+  try { const {deleteDoc} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await deleteDoc(doc(db,'pedidosPendientes',id)); } catch(e) {}
+  renderPendientes();
+};
+
 window.sendDirect=(pid)=>{
-  const p=PROVIDERS.find(x=>x.id===pid),msg=buildMessage(pid);
+  const p=PROVIDERS.find(x=>x.id===pid), msg=buildMessage(pid);
   if(!msg)return;
+  // Guardar pedido pendiente
+  guardarPedidoPendiente(pid);
   if(p.tel){window.open(`https://wa.me/54${p.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`,'_blank');}
   else openModal(pid);
 };
