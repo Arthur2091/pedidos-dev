@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copiar datos PROD → DEV</title>
+<style>
+  body { font-family: sans-serif; background: #F7F5F0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .card { background: #fff; border-radius: 16px; padding: 32px; max-width: 560px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  h2 { font-size: 18px; margin-bottom: 6px; }
+  p { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .warn { background: #FEF3C7; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #92400E; margin-bottom: 20px; }
+  .btn { width: 100%; font-size: 15px; font-weight: 600; padding: 14px; border-radius: 10px; border: none; background: #1A1814; color: #fff; cursor: pointer; transition: background 0.15s; }
+  .btn:hover { background: #333; }
+  .btn:disabled { background: #aaa; cursor: default; }
+  .log { margin-top: 20px; background: #F0EDE8; border-radius: 10px; padding: 14px; font-size: 12px; font-family: monospace; max-height: 280px; overflow-y: auto; line-height: 1.8; display: none; }
+  .ok { color: #2D6A4F; } .err { color: #C2410C; } .info { color: #1D4ED8; }
+  .done { margin-top: 16px; background: #D8F3DC; border-radius: 10px; padding: 14px; font-size: 13px; font-weight: 600; color: #2D6A4F; display: none; text-align: center; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🔄 Copiar datos PROD → DEV</h2>
+  <p>Copia todos los datos de producción a la base de datos de desarrollo. Ejecutar una sola vez.</p>
+  <div class="warn">⚠ Este proceso sobreescribe todos los datos actuales en DEV. No afecta PROD.</div>
+  <button class="btn" id="btn" onclick="copiar()">Iniciar copia</button>
+  <div class="log" id="log"></div>
+  <div class="done" id="done">✅ Copia completada. Podés cerrar esta página y usar el ambiente DEV.</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, getDocs, collection, addDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// PROD
+const prodConfig = {
+  apiKey: "AIzaSyC_dkvixcRfzRMxXTAAxjcDuhbsMajApxI",
+  authDomain: "arthur-sistema-pedidos.firebaseapp.com",
+  projectId: "arthur-sistema-pedidos",
+  storageBucket: "arthur-sistema-pedidos.firebasestorage.app",
+  messagingSenderId: "1039699696450",
+  appId: "1:1039699696450:web:f4af86b423eb1b2e8706db"
+};
+
+// DEV
+const devConfig = {
+  apiKey: "AIzaSyB76R4iR0eLPHz1n6BXbuC6JDeAgaUKC8I",
+  authDomain: "arthur-sistema-pedidos-dev.firebaseapp.com",
+  projectId: "arthur-sistema-pedidos-dev",
+  storageBucket: "arthur-sistema-pedidos-dev.firebasestorage.app",
+  messagingSenderId: "901390401278",
+  appId: "1:901390401278:web:bd11702dcb995f1abcefaf"
+};
+
+const prodApp = initializeApp(prodConfig, 'prod');
+const devApp  = initializeApp(devConfig,  'dev');
+const prodDb  = getFirestore(prodApp);
+const devDb   = getFirestore(devApp);
+
+function log(msg, cls='') {
+  const el = document.getElementById('log');
+  el.style.display = 'block';
+  el.innerHTML += `<div class="${cls}">${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function copiarDocumento(coleccion, id, data) {
+  await setDoc(doc(devDb, coleccion, id), data);
+}
+
+async function copiarColeccion(nombre) {
+  log(`<span class="info">→ Copiando colección: ${nombre}...</span>`);
+  const snap = await getDocs(collection(prodDb, nombre));
+  let count = 0;
+  for (const d of snap.docs) {
+    await setDoc(doc(devDb, nombre, d.id), d.data());
+    count++;
+  }
+  log(`✓ ${nombre}: ${count} documentos copiados`, 'ok');
+  return count;
+}
+
+window.copiar = async () => {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  btn.textContent = 'Copiando...';
+
+  try {
+    log('Iniciando copia de PROD → DEV...', 'info');
+
+    // Copiar documentos únicos en /data/
+    log('<span class="info">→ Copiando precios...</span>');
+    const prices = await getDoc(doc(prodDb, 'data', 'prices'));
+    if (prices.exists()) {
+      await setDoc(doc(devDb, 'data', 'prices'), prices.data());
+      log('✓ data/prices copiado', 'ok');
+    }
+
+    const presentations = await getDoc(doc(prodDb, 'data', 'presentations'));
+    if (presentations.exists()) {
+      await setDoc(doc(devDb, 'data', 'presentations'), presentations.data());
+      log('✓ data/presentations copiado', 'ok');
+    }
+
+    const insumoCategories = await getDoc(doc(prodDb, 'data', 'insumoCategories'));
+    if (insumoCategories.exists()) {
+      await setDoc(doc(devDb, 'data', 'insumoCategories'), insumoCategories.data());
+      log('✓ data/insumoCategories copiado', 'ok');
+    }
+
+    // Copiar colecciones
+    await copiarColeccion('recetas');
+    await copiarColeccion('customProducts');
+    await copiarColeccion('customProviders');
+    await copiarColeccion('historial');
+
+    log('', '');
+    log('✅ Copia completada exitosamente', 'ok');
+    document.getElementById('done').style.display = 'block';
+    btn.textContent = '✅ Listo';
+
+  } catch(e) {
+    log(`✗ Error: ${e.message}`, 'err');
+    btn.disabled = false;
+    btn.textContent = 'Reintentar';
+  }
+};
+</script>
+</body>
+</html>
