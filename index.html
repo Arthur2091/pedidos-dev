@@ -226,7 +226,34 @@
   .ins-assign-btn { font-size: 11px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--ink3); cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
   .ins-assign-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
 
-  /* RECETAS */
+  /* SELECTOR DE INGREDIENTES POR CATEGORÍA */
+  .ing-selector { display: flex; flex-direction: column; gap: 10px; }
+  .ing-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ing-cat-chip { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink2); cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+  .ing-cat-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .ing-cat-chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .ing-prods-panel { display: none; flex-wrap: wrap; gap: 6px; padding: 10px 12px; background: var(--surface2); border-radius: 10px; }
+  .ing-prods-panel.open { display: flex; }
+  .ing-prod-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 4px 12px; border-radius: 6px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink); cursor: pointer; transition: all 0.12s; }
+  .ing-prod-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+  .ing-prod-btn.added { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .rec-ing-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rec-ing-table th { background: var(--surface2); padding: 6px 10px; text-align: left; font-size: 11px; font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.4px; }
+  .rec-ing-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .rec-ing-table tr:last-child td { border-bottom: none; }
+  .rec-ing-table tr:hover td { background: var(--surface2); }
+  .td-name { font-weight: 500; color: var(--ink); }
+  .td-qty { width: 70px; }
+  .td-unit { width: 80px; }
+  .td-cost { width: 80px; font-family: 'DM Mono', monospace; color: var(--accent); text-align: right; }
+  .td-del { width: 32px; text-align: center; }
+  .ing-qty-inp { width: 64px; font-family: 'DM Mono', monospace; font-size: 13px; padding: 4px 6px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--bg); outline: none; text-align: right; -moz-appearance: textfield; }
+  .ing-qty-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .ing-qty-inp:focus { border-color: var(--accent); background: #fff; }
+  .ing-unit-sel { font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 4px 5px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--bg); outline: none; cursor: pointer; width: 76px; }
+  .ing-del-btn { background: none; border: none; cursor: pointer; color: var(--ink3); font-size: 15px; padding: 2px 4px; border-radius: 4px; }
+  .ing-del-btn:hover { color: #B91C1C; background: #FEE2E2; }
+  .ing-empty-msg { font-size: 12px; color: var(--ink3); font-style: italic; padding: 4px 0; }
   #viewRecetas { display: none; }
   .rec-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
   .rec-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
@@ -508,8 +535,17 @@
       </div>
       <div>
         <div class="rec-field-label">Ingredientes</div>
-        <div class="rec-ing-list" id="recIngList"></div>
-        <button class="btn-add-ing" onclick="agregarIngrediente()">＋ Agregar ingrediente</button>
+        <div class="ing-selector">
+          <div class="ing-cats" id="ingCatChips"></div>
+          <div class="ing-prods-panel" id="ingProdsPanel"></div>
+          <div id="recIngTableWrap">
+            <div class="ing-empty-msg" id="ingEmptyMsg">Seleccioná una categoría y hacé clic en un ingrediente para agregarlo</div>
+            <table class="rec-ing-table" id="recIngTable" style="display:none">
+              <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Unidad</th><th style="text-align:right">Costo</th><th></th></tr></thead>
+              <tbody id="recIngBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
       <div>
         <div class="rec-field-label">Vista previa de costos</div>
@@ -828,7 +864,10 @@ function fmtPrecio(n) {
   return '$' + Math.round(n).toLocaleString('es-AR');
 }
 
-// ── MODAL ──
+// ── MODAL RECETA ──
+let recIngredientes = []; // { pid, idx, nombre, provName, cantidad, unidad }
+let activeCat = null;
+
 window.abrirModalReceta = (id = null) => {
   editingRecetaId = id;
   const rec = id ? recetas.find(r => r.id === id) : null;
@@ -836,15 +875,14 @@ window.abrirModalReceta = (id = null) => {
   document.getElementById('recNombre').value = rec?.nombre || '';
   document.getElementById('recPorciones').value = rec?.porciones || '';
   document.getElementById('recMargen').value = rec?.margen || '';
-  document.getElementById('recIngList').innerHTML = '';
-  if (rec?.ingredientes?.length) {
-    rec.ingredientes.forEach(ing => agregarIngrediente(ing));
-  } else {
-    agregarIngrediente();
-  }
+  recIngredientes = rec?.ingredientes ? rec.ingredientes.map(i => ({...i})) : [];
+  activeCat = null;
+  buildCatChips();
+  renderIngTable();
   calcPreview();
   document.getElementById('recModalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('recNombre').focus(), 100);
 };
 
 window.cerrarModalReceta = (e) => {
@@ -853,44 +891,122 @@ window.cerrarModalReceta = (e) => {
   document.body.style.overflow = '';
 };
 
-window.agregarIngrediente = (ing = null) => {
-  const allProds = getAllProducts();
-  const list = document.getElementById('recIngList');
-  const div = document.createElement('div');
-  div.className = 'rec-ing-item';
-  const selOpts = allProds.map(p =>
-    `<option value="${p.pid}|${p.idx}" ${ing && ing.pid===p.pid && ing.idx===p.idx ? 'selected' : ''}>${p.label}</option>`
-  ).join('');
-  const unitOpts = UNIDADES.map(u =>
-    `<option value="${u}" ${ing?.unidad===u ? 'selected' : ''}>${u}</option>`
-  ).join('');
-  div.innerHTML = `
-    <select class="rec-ing-sel" onchange="calcPreview()">
-      <option value="">— Seleccioná insumo —</option>
-      ${selOpts}
-    </select>
-    <input class="rec-ing-qty-inp" type="number" min="0" step="any" placeholder="Cant." value="${ing?.cantidad||''}" oninput="calcPreview()">
-    <select class="rec-ing-unit-sel" onchange="calcPreview()">${unitOpts}</select>
-    <button class="btn-del-ing" onclick="this.parentElement.remove();calcPreview()">✕</button>`;
-  list.appendChild(div);
+function buildCatChips() {
+  const wrap = document.getElementById('ingCatChips');
+  wrap.innerHTML = CATEGORIAS_RECETA.map(cat => {
+    const count = getProductsByCategory(cat.id).length;
+    if (count === 0) return '';
+    return `<button class="ing-cat-chip" data-cat="${cat.id}" onclick="selectCat('${cat.id}')">${cat.icon} ${cat.label} <span style="opacity:0.5;font-size:10px">${count}</span></button>`;
+  }).join('');
+}
+
+function getProductsByCategory(catId) {
+  const result = [];
+  PROVIDERS.forEach(p => {
+    p.products.forEach((prod, i) => {
+      const k = key(p.id, i);
+      if ((insumoCategories[k] || 'otros') === catId) {
+        result.push({ pid: p.id, idx: i, nombre: prod, provName: p.name, k });
+      }
+    });
+  });
+  return result.sort((a,b) => a.nombre.localeCompare(b.nombre, 'es', {sensitivity:'base'}));
+}
+
+window.selectCat = (catId) => {
+  activeCat = catId;
+  document.querySelectorAll('.ing-cat-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === catId));
+  const panel = document.getElementById('ingProdsPanel');
+  const prods = getProductsByCategory(catId);
+  panel.innerHTML = prods.map(p => {
+    const alreadyAdded = recIngredientes.some(i => i.pid === p.pid && i.idx === p.idx);
+    return `<button class="ing-prod-btn ${alreadyAdded ? 'added' : ''}" onclick="addIngrediente('${p.pid}',${p.idx},'${p.nombre.replace(/'/g,"\\'")}','${p.provName.replace(/'/g,"\\'")}')">
+      ${p.nombre}
+    </button>`;
+  }).join('');
+  panel.classList.add('open');
+};
+
+window.addIngrediente = (pid, idx, nombre, provName) => {
+  if (recIngredientes.some(i => i.pid === pid && i.idx === idx)) {
+    showToast('⚠ Ya está en la receta');
+    return;
+  }
+  recIngredientes.push({ pid, idx: parseInt(idx), nombre, provName, cantidad: 100, unidad: 'g' });
+  renderIngTable();
+  calcPreview();
+  // Mark button as added
+  if (activeCat) selectCat(activeCat);
+  // Focus on the new qty input
+  setTimeout(() => {
+    const rows = document.querySelectorAll('#recIngBody tr');
+    const lastRow = rows[rows.length - 1];
+    if (lastRow) lastRow.querySelector('.ing-qty-inp')?.focus();
+  }, 50);
+};
+
+function renderIngTable() {
+  const body = document.getElementById('recIngBody');
+  const table = document.getElementById('recIngTable');
+  const emptyMsg = document.getElementById('ingEmptyMsg');
+  if (!recIngredientes.length) {
+    table.style.display = 'none';
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  table.style.display = 'table';
+  emptyMsg.style.display = 'none';
+  const UNITS = ['g','kg','ml','L','u','cdita','cda','taza'];
+  body.innerHTML = recIngredientes.map((ing, i) => {
+    const costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
+    const unitOpts = UNITS.map(u => `<option value="${u}" ${ing.unidad===u?'selected':''}>${u}</option>`).join('');
+    return `<tr>
+      <td class="td-name">${ing.nombre} <span style="font-size:11px;color:var(--ink3)">${ing.provName}</span></td>
+      <td class="td-qty"><input class="ing-qty-inp" type="number" min="0" step="any" value="${ing.cantidad}"
+        onchange="updateIngCant(${i},this.value)"
+        onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.querySelectorAll('.ing-unit-sel')[${i}].focus()}"
+        onfocus="this.select()"></td>
+      <td class="td-unit"><select class="ing-unit-sel" onchange="updateIngUnit(${i},this.value)"
+        onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();const ni=document.querySelectorAll('.ing-qty-inp')[${i+1}];if(ni)ni.focus();}">${unitOpts}</select></td>
+      <td class="td-cost">${costo !== null ? fmtPrecio(costo) : '<span style="color:var(--ink3);font-style:italic">sin precio</span>'}</td>
+      <td class="td-del"><button class="ing-del-btn" onclick="removeIngrediente(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+window.updateIngCant = (i, val) => {
+  recIngredientes[i].cantidad = parseFloat(val) || 0;
+  // Update cost cell only
+  const rows = document.querySelectorAll('#recIngBody tr');
+  if (rows[i]) {
+    const ing = recIngredientes[i];
+    const costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
+    rows[i].querySelector('.td-cost').innerHTML = costo !== null ? fmtPrecio(costo) : '<span style="color:var(--ink3);font-style:italic">sin precio</span>';
+  }
   calcPreview();
 };
 
+window.updateIngUnit = (i, val) => {
+  recIngredientes[i].unidad = val;
+  updateIngCant(i, recIngredientes[i].cantidad);
+};
+
+window.removeIngrediente = (i) => {
+  recIngredientes.splice(i, 1);
+  renderIngTable();
+  calcPreview();
+  if (activeCat) selectCat(activeCat);
+};
+
 window.calcPreview = () => {
-  const items = document.querySelectorAll('#recIngList .rec-ing-item');
   const porciones = parseFloat(document.getElementById('recPorciones').value) || 1;
   const margen = parseFloat(document.getElementById('recMargen').value) || 0;
   let costoTotal = 0;
   let hayIncompleto = false;
-  items.forEach(item => {
-    const sel = item.querySelector('.rec-ing-sel').value;
-    const cant = parseFloat(item.querySelector('.rec-ing-qty-inp').value);
-    const unidad = item.querySelector('.rec-ing-unit-sel').value;
-    if (!sel || !cant) return;
-    const [pid, idx] = sel.split('|');
-    const costo = calcCostoIngrediente(pid, parseInt(idx), cant, unidad);
-    if (costo === null) { hayIncompleto = true; return; }
-    costoTotal += costo;
+  recIngredientes.forEach(ing => {
+    const costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
+    if (costo === null) hayIncompleto = true;
+    else costoTotal += costo;
   });
   const costoPorcion = costoTotal / porciones;
   const precioVenta = costoPorcion * (1 + margen / 100);
@@ -905,23 +1021,8 @@ window.guardarReceta = async () => {
   const margen = parseFloat(document.getElementById('recMargen').value) || 0;
   if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
   if (!porciones || porciones < 1) { showToast('⚠ Ingresá las porciones'); return; }
-
-  const items = document.querySelectorAll('#recIngList .rec-ing-item');
-  const ingredientes = [];
-  items.forEach(item => {
-    const sel = item.querySelector('.rec-ing-sel').value;
-    const cant = parseFloat(item.querySelector('.rec-ing-qty-inp').value);
-    const unidad = item.querySelector('.rec-ing-unit-sel').value;
-    if (!sel || !cant) return;
-    const [pid, idx] = sel.split('|');
-    const prod = PROVIDERS.find(p=>p.id===pid);
-    ingredientes.push({ pid, idx: parseInt(idx), cantidad: cant, unidad, nombre: prod?.products[parseInt(idx)] || '', provName: prod?.name || '' });
-  });
-
-  if (!ingredientes.length) { showToast('⚠ Agregá al menos un ingrediente'); return; }
-
-  const receta = { nombre, porciones, margen, ingredientes, updatedAt: Date.now() };
-
+  if (!recIngredientes.length) { showToast('⚠ Agregá al menos un ingrediente'); return; }
+  const receta = { nombre, porciones, margen, ingredientes: recIngredientes, updatedAt: Date.now() };
   try {
     if (editingRecetaId) {
       await setDoc(doc(db,'recetas', editingRecetaId), receta);
@@ -938,7 +1039,6 @@ window.guardarReceta = async () => {
     if (!editingRecetaId) recetas.push(receta);
     else { const i=recetas.findIndex(r=>r.id===editingRecetaId); if(i>=0) recetas[i]=receta; }
   }
-
   document.getElementById('recModalOverlay').classList.remove('open');
   document.body.style.overflow = '';
   showToast(`✓ Receta "${nombre}" guardada`);
