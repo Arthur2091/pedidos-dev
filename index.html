@@ -215,13 +215,28 @@
   .ins-list { padding: 6px 0; max-height: 280px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .ins-list::-webkit-scrollbar { width: 4px; }
   .ins-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  .ins-row { display: flex; align-items: center; gap: 10px; padding: 7px 18px; transition: background 0.1s; border-bottom: 1px solid var(--border); }
+  .ins-row { display: flex; align-items: center; gap: 10px; padding: 7px 18px; transition: background 0.1s; border-bottom: 1px solid var(--border); cursor: pointer; }
   .ins-row:last-child { border-bottom: none; }
   .ins-row:hover { background: var(--surface2); }
+  .ins-row.expanded { background: var(--surface2); border-bottom: none; }
   .ins-name { flex: 1; font-size: 13px; color: var(--ink); }
   .ins-prov { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
   .ins-price { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 600; color: var(--accent); min-width: 70px; text-align: right; }
   .ins-price.no-price { color: var(--ink3); font-weight: 400; font-style: italic; }
+  .ins-expand-icon { font-size: 11px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; }
+  .ins-row.expanded .ins-expand-icon { transform: rotate(90deg); }
+  .ins-pres-panel { display: none; padding: 10px 18px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ins-pres-panel.open { display: flex; }
+  .ins-pres-label { font-size: 12px; color: var(--ink2); font-weight: 500; }
+  .ins-pres-qty { width: 70px; font-family: 'DM Mono', monospace; font-size: 13px; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; text-align: right; -moz-appearance: textfield; transition: border-color 0.15s; }
+  .ins-pres-qty::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .ins-pres-qty:focus { border-color: var(--accent); background: #fff; }
+  .ins-pres-unit { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; cursor: pointer; }
+  .ins-pres-unit:focus { border-color: var(--accent); }
+  .ins-pres-equiv { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+  .btn-save-pres { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 7px; border: none; background: var(--accent); color: #fff; cursor: pointer; transition: background 0.15s; }
+  .btn-save-pres:hover { background: #235c42; }
+  .ins-pres-saved { font-size: 11px; color: var(--accent); font-family: 'DM Mono', monospace; }
   .ins-empty { padding: 20px 18px; font-size: 13px; color: var(--ink3); font-style: italic; text-align: center; }
   .ins-assign-btn { font-size: 11px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--ink3); cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
   .ins-assign-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
@@ -1498,16 +1513,85 @@ window.renderInsumos = () => {
       <div class="ins-list" id="inslist-${cat.id}">
         ${items.length === 0
           ? `<div class="ins-empty">Sin insumos asignados</div>`
-          : items.map(ins => `
-            <div class="ins-row">
+          : items.map(ins => {
+              const pres = presentations[ins.k] || {};
+              const presStr = pres.qty ? `${pres.qty} ${pres.unit}` : '';
+              return `
+            <div class="ins-row" id="insrow-${ins.k}" onclick="toggleInsPanel('${ins.k}')">
+              <span class="ins-expand-icon">▶</span>
               <span class="ins-name">${ins.name}</span>
               <span class="ins-prov">${ins.prov}</span>
+              ${presStr ? `<span class="ins-pres-saved">${presStr}</span>` : ''}
               <span class="ins-price ${ins.pr ? '' : 'no-price'}">${ins.pr ? '$' + Math.round(ins.pr).toLocaleString('es-AR') : 'sin precio'}</span>
-              <button class="ins-assign-btn" onclick="asignarCategoria('${ins.k}','${ins.name}')">mover</button>
-            </div>`).join('')}
+              <button class="ins-assign-btn" onclick="event.stopPropagation();asignarCategoria('${ins.k}','${ins.name}')">mover</button>
+            </div>
+            <div class="ins-pres-panel" id="inspanel-${ins.k}">
+              <span class="ins-pres-label">Presentación:</span>
+              <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Cant." value="${pres.qty||''}"
+                id="inspresqty-${ins.k}" onfocus="this.select()"
+                oninput="updateInsPresEquiv('${ins.k}')">
+              <select class="ins-pres-unit" id="inspresunit-${ins.k}" onchange="updateInsPresEquiv('${ins.k}')">
+                ${['kg','g','L','ml','u'].map(u=>`<option value="${u}" ${pres.unit===u?'selected':''}>${u}</option>`).join('')}
+              </select>
+              <span class="ins-pres-equiv" id="insequiv-${ins.k}">${pres.qty&&pres.unit?calcCostoBase(ins.pr,pres.qty,pres.unit)||'':''}</span>
+              <button class="btn-save-pres" onclick="saveInsPresentation('${ins.k}','${ins.name}')">Guardar</button>
+            </div>`}).join('')}
       </div>`;
     grid.appendChild(card);
   });
+};
+
+window.toggleInsPanel = (k) => {
+  const row = document.getElementById(`insrow-${k}`);
+  const panel = document.getElementById(`inspanel-${k}`);
+  if (!row || !panel) return;
+  const open = panel.classList.contains('open');
+  panel.classList.toggle('open', !open);
+  row.classList.toggle('expanded', !open);
+  if (!open) document.getElementById(`inspresqty-${k}`)?.focus();
+};
+
+window.updateInsPresEquiv = (k) => {
+  const qty = parseFloat(document.getElementById(`inspresqty-${k}`)?.value);
+  const unit = document.getElementById(`inspresunit-${k}`)?.value;
+  const pr = prices[k];
+  const equiv = document.getElementById(`insequiv-${k}`);
+  if (!equiv) return;
+  if (qty && unit && pr) {
+    equiv.textContent = calcCostoBase(pr, qty, unit) || '';
+  } else {
+    equiv.textContent = UNIDAD_EQUIV?.[unit] || '';
+  }
+};
+
+window.saveInsPresentation = async (k, nombre) => {
+  const qty = parseFloat(document.getElementById(`inspresqty-${k}`)?.value);
+  const unit = document.getElementById(`inspresunit-${k}`)?.value;
+  if (!qty || !unit) { showToast('⚠ Ingresá cantidad y unidad'); return; }
+  presentations[k] = { qty, unit };
+  try {
+    await setDoc(doc(db,'data','presentations'), presentations);
+  } catch(e) {}
+  // Close panel
+  document.getElementById(`inspanel-${k}`)?.classList.remove('open');
+  document.getElementById(`insrow-${k}`)?.classList.remove('expanded');
+  // Update saved label
+  const savedEl = document.getElementById(`insrow-${k}`)?.querySelector('.ins-pres-saved');
+  if (savedEl) { savedEl.textContent = `${qty} ${unit}`; }
+  else {
+    const row = document.getElementById(`insrow-${k}`);
+    if (row) {
+      const span = document.createElement('span');
+      span.className = 'ins-pres-saved';
+      span.textContent = `${qty} ${unit}`;
+      row.insertBefore(span, row.querySelector('.ins-price'));
+    }
+  }
+  // Refresh precios row
+  const parts = k.split('_');
+  const ppEl = document.getElementById(`pp-${parts[0]}-${parts[1]}`);
+  if (ppEl && prices[k]) { ppEl.textContent = fmtPrice(prices[k]); ppEl.classList.add('has-price'); }
+  showToast(`✓ Presentación guardada: ${qty} ${unit}`);
 };
 
 window.filtrarInsumos = (term) => {
@@ -2042,10 +2126,11 @@ function renderPrecioRow(pid, provName, prod, i){
     </div>
     <div class="precio-row-bottom">
       <span class="pres-label">Presentación:</span>
-      <input class="pres-qty-inp" type="number" min="0" step="any" placeholder="Cant." value="${presQty}"
-        onchange="handlePresChange('${k}',this,'unit')" onfocus="this.select()">
-      <select class="pres-unit-sel" onchange="handlePresChange('${k}',this,'sel')">${unitOpts}</select>
-      ${costoBase ? `<span class="pres-costo-base" id="cbase-${k}">= ${costoBase}</span>` : `<span class="pres-costo-base" id="cbase-${k}"></span>`}
+      ${pres.qty && pres.unit
+        ? `<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:500">${pres.qty} ${pres.unit}</span>
+           <span class="pres-costo-base" id="cbase-${k}">${costoBase ? `= ${costoBase}` : ''}</span>
+           <span style="font-size:11px;color:var(--ink3)">· editá en Insumos</span>`
+        : `<span style="font-size:11px;color:var(--ink3);font-style:italic">Sin presentación — cargala en la solapa Insumos</span>`}
     </div>
   </div>`;
 }
