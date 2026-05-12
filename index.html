@@ -536,10 +536,13 @@
       <div>
         <div class="rec-field-label">Ingredientes</div>
         <div class="ing-selector">
-          <div class="ing-cats" id="ingCatChips"></div>
-          <div class="ing-prods-panel" id="ingProdsPanel"></div>
+          <button class="btn-add-ing" onclick="toggleIngSelector()" id="btnToggleIng">＋ Agregar ingrediente</button>
+          <div id="ingSelectorPanel" style="display:none; flex-direction:column; gap:8px;">
+            <div class="ing-cats" id="ingCatChips"></div>
+            <div class="ing-prods-panel" id="ingProdsPanel"></div>
+          </div>
           <div id="recIngTableWrap">
-            <div class="ing-empty-msg" id="ingEmptyMsg">Seleccioná una categoría y hacé clic en un ingrediente para agregarlo</div>
+            <div class="ing-empty-msg" id="ingEmptyMsg">Sin ingredientes. Usá el botón de arriba para agregar.</div>
             <table class="rec-ing-table" id="recIngTable" style="display:none">
               <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Unidad</th><th style="text-align:right">Costo</th><th></th></tr></thead>
               <tbody id="recIngBody"></tbody>
@@ -868,6 +871,15 @@ function fmtPrecio(n) {
 let recIngredientes = []; // { pid, idx, nombre, provName, cantidad, unidad }
 let activeCat = null;
 
+window.toggleIngSelector = () => {
+  const panel = document.getElementById('ingSelectorPanel');
+  const btn = document.getElementById('btnToggleIng');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'flex' : 'none';
+  btn.textContent = open ? '✕ Cerrar selector' : '＋ Agregar ingrediente';
+  if (open) buildCatChips();
+};
+
 window.abrirModalReceta = (id = null) => {
   editingRecetaId = id;
   const rec = id ? recetas.find(r => r.id === id) : null;
@@ -877,7 +889,13 @@ window.abrirModalReceta = (id = null) => {
   document.getElementById('recMargen').value = rec?.margen || '';
   recIngredientes = rec?.ingredientes ? rec.ingredientes.map(i => ({...i})) : [];
   activeCat = null;
-  buildCatChips();
+  // Reset selector panel
+  const panel = document.getElementById('ingSelectorPanel');
+  panel.style.display = 'none';
+  document.getElementById('btnToggleIng').textContent = '＋ Agregar ingrediente';
+  document.getElementById('ingCatChips').innerHTML = '';
+  document.getElementById('ingProdsPanel').innerHTML = '';
+  document.getElementById('ingProdsPanel').classList.remove('open');
   renderIngTable();
   calcPreview();
   document.getElementById('recModalOverlay').classList.add('open');
@@ -893,11 +911,17 @@ window.cerrarModalReceta = (e) => {
 
 function buildCatChips() {
   const wrap = document.getElementById('ingCatChips');
-  wrap.innerHTML = CATEGORIAS_RECETA.map(cat => {
+  let html = CATEGORIAS_RECETA.map(cat => {
     const count = getProductsByCategory(cat.id).length;
     if (count === 0) return '';
     return `<button class="ing-cat-chip" data-cat="${cat.id}" onclick="selectCat('${cat.id}')">${cat.icon} ${cat.label} <span style="opacity:0.5;font-size:10px">${count}</span></button>`;
   }).join('');
+  // Add sub-recipes chip
+  const otrasRecetas = recetas.filter(r => r.id !== editingRecetaId);
+  if (otrasRecetas.length) {
+    html += `<button class="ing-cat-chip" data-cat="__recetas__" onclick="selectCat('__recetas__')" style="border-color:#7C3AED;color:#7C3AED">📋 Sub-recetas <span style="opacity:0.5;font-size:10px">${otrasRecetas.length}</span></button>`;
+  }
+  wrap.innerHTML = html;
 }
 
 function getProductsByCategory(catId) {
@@ -917,31 +941,70 @@ window.selectCat = (catId) => {
   activeCat = catId;
   document.querySelectorAll('.ing-cat-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === catId));
   const panel = document.getElementById('ingProdsPanel');
-  const prods = getProductsByCategory(catId);
-  panel.innerHTML = prods.map(p => {
-    const alreadyAdded = recIngredientes.some(i => i.pid === p.pid && i.idx === p.idx);
-    return `<button class="ing-prod-btn ${alreadyAdded ? 'added' : ''}" onclick="addIngrediente('${p.pid}',${p.idx},'${p.nombre.replace(/'/g,"\\'")}','${p.provName.replace(/'/g,"\\'")}')">
-      ${p.nombre}
-    </button>`;
-  }).join('');
+
+  if (catId === '__recetas__') {
+    // Show other recipes as selectable
+    const otrasRecetas = recetas.filter(r => r.id !== editingRecetaId);
+    panel.innerHTML = otrasRecetas.map(r => {
+      const alreadyAdded = recIngredientes.some(i => i.tipo === 'receta' && i.recetaId === r.id);
+      const costoXPorcion = calcCostoReceta(r);
+      return `<button class="ing-prod-btn ${alreadyAdded ? 'added' : ''}" style="${alreadyAdded?'':'border-color:#7C3AED22'}" onclick="addSubReceta('${r.id}','${r.nombre.replace(/'/g,"\\'")}')">
+        📋 ${r.nombre} <span style="font-size:10px;opacity:0.6">${costoXPorcion!==null?fmtPrecio(costoXPorcion)+'/porc.':''}</span>
+      </button>`;
+    }).join('');
+  } else {
+    const prods = getProductsByCategory(catId);
+    panel.innerHTML = prods.map(p => {
+      const alreadyAdded = recIngredientes.some(i => i.tipo !== 'receta' && i.pid === p.pid && i.idx === p.idx);
+      return `<button class="ing-prod-btn ${alreadyAdded ? 'added' : ''}" onclick="addIngrediente('${p.pid}',${p.idx},'${p.nombre.replace(/'/g,"\\'")}','${p.provName.replace(/'/g,"\\'")}')">
+        ${p.nombre}
+      </button>`;
+    }).join('');
+  }
   panel.classList.add('open');
 };
 
-window.addIngrediente = (pid, idx, nombre, provName) => {
-  if (recIngredientes.some(i => i.pid === pid && i.idx === idx)) {
-    showToast('⚠ Ya está en la receta');
-    return;
+function calcCostoReceta(rec) {
+  if (!rec?.ingredientes?.length) return null;
+  let total = 0;
+  for (const ing of rec.ingredientes) {
+    if (ing.tipo === 'receta') {
+      const subRec = recetas.find(r => r.id === ing.recetaId);
+      const c = subRec ? calcCostoReceta(subRec) : null;
+      if (c === null) return null;
+      total += c * ing.porciones;
+    } else {
+      const c = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
+      if (c === null) return null;
+      total += c;
+    }
   }
-  recIngredientes.push({ pid, idx: parseInt(idx), nombre, provName, cantidad: 100, unidad: 'g' });
-  renderIngTable();
-  calcPreview();
-  // Mark button as added
+  return total / (rec.porciones || 1);
+}
+
+window.addSubReceta = (recetaId, nombre) => {
+  if (recIngredientes.some(i => i.tipo === 'receta' && i.recetaId === recetaId)) {
+    showToast('⚠ Ya está en la receta'); return;
+  }
+  recIngredientes.push({ tipo: 'receta', recetaId, nombre, porciones: 1 });
+  renderIngTable(); calcPreview();
   if (activeCat) selectCat(activeCat);
-  // Focus on the new qty input
   setTimeout(() => {
     const rows = document.querySelectorAll('#recIngBody tr');
-    const lastRow = rows[rows.length - 1];
-    if (lastRow) lastRow.querySelector('.ing-qty-inp')?.focus();
+    rows[rows.length-1]?.querySelector('.ing-qty-inp')?.focus();
+  }, 50);
+};
+
+window.addIngrediente = (pid, idx, nombre, provName) => {
+  if (recIngredientes.some(i => i.tipo !== 'receta' && i.pid === pid && i.idx === idx)) {
+    showToast('⚠ Ya está en la receta'); return;
+  }
+  recIngredientes.push({ tipo: 'insumo', pid, idx: parseInt(idx), nombre, provName, cantidad: 100, unidad: 'g' });
+  renderIngTable(); calcPreview();
+  if (activeCat) selectCat(activeCat);
+  setTimeout(() => {
+    const rows = document.querySelectorAll('#recIngBody tr');
+    rows[rows.length-1]?.querySelector('.ing-qty-inp')?.focus();
   }, 50);
 };
 
@@ -949,38 +1012,53 @@ function renderIngTable() {
   const body = document.getElementById('recIngBody');
   const table = document.getElementById('recIngTable');
   const emptyMsg = document.getElementById('ingEmptyMsg');
-  if (!recIngredientes.length) {
-    table.style.display = 'none';
-    emptyMsg.style.display = 'block';
-    return;
-  }
-  table.style.display = 'table';
-  emptyMsg.style.display = 'none';
+  if (!recIngredientes.length) { table.style.display='none'; emptyMsg.style.display='block'; return; }
+  table.style.display = 'table'; emptyMsg.style.display = 'none';
   const UNITS = ['g','kg','ml','L','u','cdita','cda','taza'];
   body.innerHTML = recIngredientes.map((ing, i) => {
+    if (ing.tipo === 'receta') {
+      const subRec = recetas.find(r => r.id === ing.recetaId);
+      const cPP = subRec ? calcCostoReceta(subRec) : null;
+      const cTotal = cPP !== null ? fmtPrecio(cPP * ing.porciones) : '<span style="color:var(--ink3);font-style:italic">sin precio</span>';
+      return `<tr>
+        <td class="td-name">📋 ${ing.nombre} <span style="font-size:11px;color:#7C3AED">sub-receta</span></td>
+        <td class="td-qty"><input class="ing-qty-inp" type="number" min="1" step="1" value="${ing.porciones}"
+          onchange="updateSubRecetaPorciones(${i},this.value)" onfocus="this.select()"></td>
+        <td style="font-size:12px;color:var(--ink3)">porciones</td>
+        <td class="td-cost">${cTotal}</td>
+        <td class="td-del"><button class="ing-del-btn" onclick="removeIngrediente(${i})">✕</button></td>
+      </tr>`;
+    }
     const costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
     const unitOpts = UNITS.map(u => `<option value="${u}" ${ing.unidad===u?'selected':''}>${u}</option>`).join('');
     return `<tr>
       <td class="td-name">${ing.nombre} <span style="font-size:11px;color:var(--ink3)">${ing.provName}</span></td>
       <td class="td-qty"><input class="ing-qty-inp" type="number" min="0" step="any" value="${ing.cantidad}"
-        onchange="updateIngCant(${i},this.value)"
-        onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.querySelectorAll('.ing-unit-sel')[${i}].focus()}"
-        onfocus="this.select()"></td>
-      <td class="td-unit"><select class="ing-unit-sel" onchange="updateIngUnit(${i},this.value)"
-        onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();const ni=document.querySelectorAll('.ing-qty-inp')[${i+1}];if(ni)ni.focus();}">${unitOpts}</select></td>
+        onchange="updateIngCant(${i},this.value)" onfocus="this.select()"></td>
+      <td class="td-unit"><select class="ing-unit-sel" onchange="updateIngUnit(${i},this.value)">${unitOpts}</select></td>
       <td class="td-cost">${costo !== null ? fmtPrecio(costo) : '<span style="color:var(--ink3);font-style:italic">sin precio</span>'}</td>
       <td class="td-del"><button class="ing-del-btn" onclick="removeIngrediente(${i})">✕</button></td>
     </tr>`;
   }).join('');
 }
 
-window.updateIngCant = (i, val) => {
-  recIngredientes[i].cantidad = parseFloat(val) || 0;
-  // Update cost cell only
+window.updateSubRecetaPorciones = (i, val) => {
+  recIngredientes[i].porciones = parseInt(val) || 1;
   const rows = document.querySelectorAll('#recIngBody tr');
   if (rows[i]) {
     const ing = recIngredientes[i];
-    const costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
+    const subRec = recetas.find(r => r.id === ing.recetaId);
+    const cPP = subRec ? calcCostoReceta(subRec) : null;
+    rows[i].querySelector('.td-cost').innerHTML = cPP !== null ? fmtPrecio(cPP * ing.porciones) : '<span style="color:var(--ink3);font-style:italic">sin precio</span>';
+  }
+  calcPreview();
+};
+
+window.updateIngCant = (i, val) => {
+  recIngredientes[i].cantidad = parseFloat(val) || 0;
+  const rows = document.querySelectorAll('#recIngBody tr');
+  if (rows[i]) {
+    const costo = calcCostoIngrediente(recIngredientes[i].pid, recIngredientes[i].idx, recIngredientes[i].cantidad, recIngredientes[i].unidad);
     rows[i].querySelector('.td-cost').innerHTML = costo !== null ? fmtPrecio(costo) : '<span style="color:var(--ink3);font-style:italic">sin precio</span>';
   }
   calcPreview();
@@ -993,20 +1071,25 @@ window.updateIngUnit = (i, val) => {
 
 window.removeIngrediente = (i) => {
   recIngredientes.splice(i, 1);
-  renderIngTable();
-  calcPreview();
+  renderIngTable(); calcPreview();
   if (activeCat) selectCat(activeCat);
 };
 
 window.calcPreview = () => {
   const porciones = parseFloat(document.getElementById('recPorciones').value) || 1;
   const margen = parseFloat(document.getElementById('recMargen').value) || 0;
-  let costoTotal = 0;
-  let hayIncompleto = false;
+  let costoTotal = 0, hayIncompleto = false;
   recIngredientes.forEach(ing => {
-    const costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
-    if (costo === null) hayIncompleto = true;
-    else costoTotal += costo;
+    let c;
+    if (ing.tipo === 'receta') {
+      const subRec = recetas.find(r => r.id === ing.recetaId);
+      const cPP = subRec ? calcCostoReceta(subRec) : null;
+      c = cPP !== null ? cPP * ing.porciones : null;
+    } else {
+      c = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
+    }
+    if (c === null) hayIncompleto = true;
+    else costoTotal += c;
   });
   const costoPorcion = costoTotal / porciones;
   const precioVenta = costoPorcion * (1 + margen / 100);
@@ -1074,15 +1157,26 @@ window.renderRecetas = () => {
     let costoTotal = 0;
     let algunSinPrecio = false;
     const ingRows = rec.ingredientes.map(ing => {
-      const costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
+      let costo;
+      if (ing.tipo === 'receta') {
+        const subRec = recetas.find(r => r.id === ing.recetaId);
+        const cPP = subRec ? calcCostoReceta(subRec) : null;
+        costo = cPP !== null ? cPP * ing.porciones : null;
+        if (costo === null) algunSinPrecio = true;
+        else costoTotal += costo;
+        return `<div class="receta-ing-row">
+          <span class="receta-ing-name">📋 ${ing.nombre}</span>
+          <span class="receta-ing-qty">${ing.porciones} porc.</span>
+          ${costo !== null ? `<span class="receta-ing-costo">${fmtPrecio(costo)}</span>` : `<span class="receta-ing-sin-precio">sin precio</span>`}
+        </div>`;
+      }
+      costo = calcCostoIngrediente(ing.pid, ing.idx, ing.cantidad, ing.unidad);
       if (costo === null) { algunSinPrecio = true; }
       else costoTotal += costo;
       return `<div class="receta-ing-row">
         <span class="receta-ing-name">${ing.nombre}</span>
         <span class="receta-ing-qty">${ing.cantidad} ${ing.unidad}</span>
-        ${costo !== null
-          ? `<span class="receta-ing-costo">${fmtPrecio(costo)}</span>`
-          : `<span class="receta-ing-sin-precio">sin precio</span>`}
+        ${costo !== null ? `<span class="receta-ing-costo">${fmtPrecio(costo)}</span>` : `<span class="receta-ing-sin-precio">sin precio</span>`}
       </div>`;
     }).join('');
     const costoPorcion = costoTotal / (rec.porciones || 1);
@@ -1127,6 +1221,7 @@ const CATEGORIAS_RECETA = [
   { id: 'azucares',     label: 'Azúcares y endulzantes',   icon: '🍬' },
   { id: 'carnes',       label: 'Carnes y proteínas',       icon: '🥩' },
   { id: 'frutas',       label: 'Frutas y verduras',        icon: '🥦' },
+  { id: 'congelados',   label: 'Congelados',               icon: '🧊' },
   { id: 'especias',     label: 'Especias y condimentos',   icon: '🌶' },
   { id: 'bebidas',      label: 'Bebidas y licores',        icon: '🍾' },
   { id: 'descartables', label: 'Descartables',             icon: '📦' },
