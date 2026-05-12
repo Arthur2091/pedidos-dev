@@ -605,6 +605,17 @@
       <select class="rec-field-input" id="niProv" style="cursor:pointer"></select>
     </div>
     <div>
+      <div class="rec-field-label">Presentación <span style="font-weight:400;color:var(--ink3)">(opcional)</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="ins-pres-qty" type="number" min="0" step="any" placeholder="Cant." id="niPresQty"
+          style="width:80px" onfocus="this.select()" oninput="updateNiEquiv()">
+        <select class="ins-pres-unit" id="niPresUnit" onchange="updateNiEquiv()">
+          ${['kg','g','L','ml','u'].map(u=>`<option value="${u}">${u}</option>`).join('')}
+        </select>
+        <span style="font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace" id="niEquiv"></span>
+      </div>
+    </div>
+    <div>
       <div class="rec-field-label">Categoría</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="niCatGrid"></div>
     </div>
@@ -1650,6 +1661,10 @@ window.abrirModalNuevoInsumo = () => {
       <span style="font-size:16px">${cat.icon}</span>${cat.label}
     </button>`).join('');
   document.getElementById('niNombre').value = '';
+  const presQtyEl = document.getElementById('niPresQty');
+  if (presQtyEl) presQtyEl.value = '';
+  const niEquiv = document.getElementById('niEquiv');
+  if (niEquiv) niEquiv.textContent = '';
   document.getElementById('nuevoInsumoOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   setTimeout(() => document.getElementById('niNombre').focus(), 100);
@@ -1664,10 +1679,19 @@ window.selectNiCat = (catId) => {
   document.querySelectorAll('[data-nicat]').forEach(b => b.classList.toggle('current', b.dataset.nicat === catId));
 };
 
+window.updateNiEquiv = () => {
+  const qty = parseFloat(document.getElementById('niPresQty')?.value);
+  const unit = document.getElementById('niPresUnit')?.value;
+  const equiv = document.getElementById('niEquiv');
+  if (equiv) equiv.textContent = UNIDAD_EQUIV?.[unit] || '';
+};
+
 window.guardarNuevoInsumo = async () => {
   const nombre = document.getElementById('niNombre').value.trim();
   const pid = document.getElementById('niProv').value;
   const catBtn = document.querySelector('[data-nicat].current');
+  const presQty = parseFloat(document.getElementById('niPresQty')?.value);
+  const presUnit = document.getElementById('niPresUnit')?.value;
   if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
   if (!catBtn) { showToast('⚠ Seleccioná una categoría'); return; }
   const catId = catBtn.dataset.nicat;
@@ -1683,10 +1707,15 @@ window.guardarNuevoInsumo = async () => {
   const newIdx = p.products.indexOf(nombre);
   const k = key(pid, newIdx);
   await saveInsumoCategory(k, catId);
+  // Save presentation if provided
+  if (presQty && presUnit) {
+    presentations[k] = { qty: presQty, unit: presUnit };
+    try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
+  }
   cerrarModalNuevoInsumo();
-  showToast(`✓ "${nombre}" agregado a ${p.name} en ${CATEGORIAS_RECETA.find(c=>c.id===catId)?.label}`);
+  const catLabel = CATEGORIAS_RECETA.find(c=>c.id===catId)?.label;
+  showToast(`✓ "${nombre}" agregado${presQty ? ` · ${presQty} ${presUnit}` : ''}`);
   renderInsumos();
-  // Rebuild pedidos and precios cards
   rebuildPedidosCard(pid);
   const plist = document.getElementById(`plist-${pid}`);
   if (plist) plist.innerHTML = p.products.map((prod,i) => renderPrecioRow(pid, p.name, prod, i)).join('');
