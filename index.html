@@ -110,12 +110,20 @@
   .btn-nprov-save { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; padding: 11px; border-radius: 10px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
   .btn-nprov-save:hover { background: #235c42; }
   .btn-nprov-cancel { font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 11px 18px; border-radius: 10px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; }
-  .precios-grid { max-width: 1200px; margin: 0 auto; padding: 8px 16px 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
-  .precio-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-  .precio-card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .precio-card-title { font-size: 14px; font-weight: 600; }
+  .precios-grid { max-width: 1200px; margin: 0 auto; padding: 8px 16px 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .precio-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; transition: box-shadow 0.2s; }
+  .precio-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+  .precio-card-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; transition: background 0.15s; gap: 10px; }
+  .precio-card-header:hover { background: var(--surface2); }
+  .precio-card-header.open { border-bottom: 1px solid var(--border); }
+  .precio-card-left { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+  .precio-card-title { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .precio-card-meta { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
-  .precio-row { display: flex; flex-direction: column; padding: 10px 18px; border-bottom: 1px solid var(--border); transition: background 0.1s; gap: 6px; }
+  .precio-card-chevron { font-size: 11px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; }
+  .precio-card-chevron.open { transform: rotate(180deg); }
+  .precio-card-body { display: none; }
+  .precio-card-body.open { display: block; }
+  .precio-row { display: flex; flex-direction: column; padding: 10px 18px; border-bottom: 1px solid var(--border); transition: background 0.1s; gap: 5px; }
   .precio-row:last-child { border-bottom: none; }
   .precio-row:hover { background: var(--surface2); }
   .precio-row:hover .btn-remove-insumo { opacity: 1; }
@@ -129,11 +137,6 @@
   .precio-input::-webkit-inner-spin-button, .precio-input::-webkit-outer-spin-button { -webkit-appearance: none; }
   .precio-input:focus { border-color: var(--accent); background: #fff; }
   .pres-label { font-size: 11px; color: var(--ink3); }
-  .pres-qty-inp { width: 60px; font-family: 'DM Mono', monospace; font-size: 12px; padding: 4px 6px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); outline: none; transition: border-color 0.15s; -moz-appearance: textfield; text-align: center; }
-  .pres-qty-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
-  .pres-qty-inp:focus { border-color: var(--accent); background: #fff; }
-  .pres-unit-sel { font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 4px 6px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); outline: none; cursor: pointer; }
-  .pres-unit-sel:focus { border-color: var(--accent); }
   .pres-costo-base { font-size: 11px; color: var(--accent); font-family: 'DM Mono', monospace; margin-left: 4px; }
   .btn-remove-insumo { font-size: 14px; background: none; border: none; cursor: pointer; color: var(--ink3); opacity: 0; transition: all 0.15s; padding: 2px 4px; border-radius: 4px; line-height: 1; flex-shrink: 0; }
   .btn-remove-insumo:hover { color: #B91C1C; background: #FEE2E2; opacity: 1; }
@@ -961,11 +964,20 @@ function addProviderToPrecios(p) {
   const grid = document.getElementById('preciosGrid');
   const card = document.createElement('div');
   card.className = 'precio-card'; card.id = `pcard-${p.id}`;
-  card.innerHTML = `
-    <div class="precio-card-header">
+  const header = document.createElement('div');
+  header.className = 'precio-card-header';
+  header.id = `pheader-${p.id}`;
+  header.innerHTML = `
+    <div class="precio-card-left">
       <span class="precio-card-title">${p.name}</span>
       <span class="precio-card-meta" id="pmeta-${p.id}">0/0 con precio</span>
     </div>
+    <span class="precio-card-chevron" id="pchevron-${p.id}">▼</span>`;
+  header.onclick = () => togglePrecioCard(p.id);
+  const body = document.createElement('div');
+  body.className = 'precio-card-body';
+  body.id = `pbody-${p.id}`;
+  body.innerHTML = `
     <div id="plist-${p.id}"></div>
     <button class="btn-add-insumo" onclick="toggleAddInsumo('${p.id}')">
       <span>＋</span> Agregar insumo
@@ -975,8 +987,20 @@ function addProviderToPrecios(p) {
       <button class="btn-confirm-insumo" onclick="confirmAddInsumo('${p.id}')">Agregar</button>
       <button class="btn-cancel-insumo" onclick="toggleAddInsumo('${p.id}')">Cancelar</button>
     </div>`;
+  card.appendChild(header);
+  card.appendChild(body);
   grid.appendChild(card);
 }
+
+window.togglePrecioCard = (pid) => {
+  const body = document.getElementById(`pbody-${pid}`);
+  const header = document.getElementById(`pheader-${pid}`);
+  const chevron = document.getElementById(`pchevron-${pid}`);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+};
 
 // ── EDITAR NOMBRE INSUMO ──
 window.editarNombreInsumo = (pid, idx) => {
@@ -2479,16 +2503,29 @@ function calcCostoBase(precio, qty, unit) {
 function buildPreciosGrid(){
   const grid=document.getElementById('preciosGrid');
   grid.innerHTML='';
-  PROVIDERS.forEach(p=>{
+  // Sort providers A→Z
+  const sorted = [...PROVIDERS].sort((a,b) => a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
+  sorted.forEach(p=>{
     const withP=p.products.filter((_,i)=>prices[key(p.id,i)]).length;
     const card=document.createElement('div');
     card.className='precio-card';
     card.id=`pcard-${p.id}`;
-    card.innerHTML=`
-      <div class="precio-card-header">
+    // Header (collapsible)
+    const header = document.createElement('div');
+    header.className = 'precio-card-header';
+    header.id = `pheader-${p.id}`;
+    header.innerHTML = `
+      <div class="precio-card-left">
         <span class="precio-card-title">${p.name}</span>
         <span class="precio-card-meta" id="pmeta-${p.id}">${withP}/${p.products.length} con precio</span>
       </div>
+      <span class="precio-card-chevron" id="pchevron-${p.id}">▼</span>`;
+    header.onclick = () => togglePrecioCard(p.id);
+    // Body (collapsed by default)
+    const body = document.createElement('div');
+    body.className = 'precio-card-body';
+    body.id = `pbody-${p.id}`;
+    body.innerHTML = `
       <div id="plist-${p.id}">
         ${p.products.map((prod,i)=>renderPrecioRow(p.id, p.name, prod, i)).join('')}
       </div>
@@ -2500,6 +2537,8 @@ function buildPreciosGrid(){
         <button class="btn-confirm-insumo" onclick="confirmAddInsumo('${p.id}')">Agregar</button>
         <button class="btn-cancel-insumo" onclick="toggleAddInsumo('${p.id}')">Cancelar</button>
       </div>`;
+    card.appendChild(header);
+    card.appendChild(body);
     grid.appendChild(card);
   });
 }
