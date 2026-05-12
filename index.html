@@ -369,7 +369,7 @@
     <button onclick="logoutAndReset()" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:10px 24px;border-radius:10px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--ink)">Cerrar sesión</button>
   </div>
 </div>
-<div id="loaderScreen" style="position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999">
+<div id="loaderScreen" style="position:fixed;inset:0;background:var(--ink);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999">
   <div style="font-size:36px">🛒</div>
   <div style="color:#fff;font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif">Sistema de Pedidos</div>
   <div style="display:flex;gap:6px;margin-top:4px">
@@ -1655,17 +1655,22 @@ window.logoutAndReset = async () => {
 // Auth state listener — controla todo el flujo
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    // No user — show login, hide everything else
+    hideLoader();
     showScreen('loginScreen');
     return;
   }
   // Check if authorized
   if (!AUTHORIZED_EMAILS.includes(user.email.toLowerCase())) {
+    hideLoader();
     document.getElementById('deniedMsg').textContent = `${user.email} no tiene acceso. Contactá al administrador.`;
     showScreen('deniedScreen');
     return;
   }
-  // Authorized — hide login screens and load app
+  // Authorized — show loader and load app
   showScreen(null);
+  const loader = document.getElementById('loaderScreen');
+  if (loader) loader.style.display = 'flex';
   setupUserUI(user);
   await init();
 });
