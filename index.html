@@ -566,12 +566,16 @@
         <div class="ing-selector">
           <button class="btn-add-ing" onclick="toggleIngSelector()" id="btnToggleIng">＋ Agregar ingrediente</button>
           <div id="ingSelectorPanel" style="display:none; flex-direction:column; gap:8px;">
+            <input type="text" id="ingBuscador" class="add-insumo-input" placeholder="🔍 Buscar insumo..." style="width:100%"
+              oninput="buscarInsumo(this.value)"
+              onkeydown="if(event.key==='Escape'){this.value='';buscarInsumo('')}">
+            <div id="ingSearchResults" style="display:none; flex-wrap:wrap; gap:6px; padding:8px 12px; background:var(--accent-light); border-radius:10px; max-height:140px; overflow-y:auto;"></div>
             <div class="ing-cats" id="ingCatChips"></div>
             <div class="ing-prods-panel" id="ingProdsPanel"></div>
             <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;align-items:center;gap:8px;">
-              <input type="text" id="nuevoInsumoNombre" class="add-insumo-input" placeholder="Nombre del nuevo insumo..." style="flex:1"
+              <input type="text" id="nuevoInsumoNombre" class="add-insumo-input" placeholder="No lo encontrás? Escribí el nombre y crealo..." style="flex:1"
                 onkeydown="if(event.key==='Enter') crearInsumoDesdeReceta()">
-              <button class="btn-confirm-insumo" onclick="crearInsumoDesdeReceta()">+ Crear insumo</button>
+              <button class="btn-confirm-insumo" onclick="crearInsumoDesdeReceta()">+ Crear</button>
             </div>
           </div>
           <div id="recIngTableWrap">
@@ -941,6 +945,33 @@ window.crearInsumoDesdeReceta = async () => {
   showToast(`✓ "${nombre}" creado en Otros y agregado a la receta`);
 };
 
+window.buscarInsumo = (term) => {
+  const results = document.getElementById('ingSearchResults');
+  if (!term.trim()) { results.style.display = 'none'; results.innerHTML = ''; return; }
+  const t = term.toLowerCase();
+  const matches = [];
+  PROVIDERS.forEach(p => {
+    p.products.forEach((prod, i) => {
+      if (prod.toLowerCase().includes(t)) {
+        matches.push({ pid: p.id, idx: i, nombre: prod, provName: p.name });
+      }
+    });
+  });
+  matches.sort((a,b) => a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}));
+  if (!matches.length) {
+    results.style.display = 'flex';
+    results.innerHTML = `<span style="font-size:12px;color:var(--ink3);font-style:italic">No encontrado — podés crearlo abajo</span>`;
+    return;
+  }
+  results.style.display = 'flex';
+  results.innerHTML = matches.map(m => {
+    const alreadyAdded = recIngredientes.some(i => i.tipo !== 'receta' && i.pid === m.pid && i.idx === m.idx);
+    return `<button class="ing-prod-btn ${alreadyAdded?'added':''}" onclick="addIngrediente('${m.pid}',${m.idx},'${m.nombre.replace(/'/g,"\\'")}','${m.provName.replace(/'/g,"\\'")}')">
+      ${m.nombre} <span style="font-size:10px;opacity:0.5">${m.provName}</span>
+    </button>`;
+  }).join('');
+};
+
 window.filtrarRecetas = (cat) => {
   recCatFiltro = cat;
   document.querySelectorAll('.rec-cat-filter').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
@@ -953,7 +984,16 @@ window.toggleIngSelector = () => {
   const open = panel.style.display === 'none';
   panel.style.display = open ? 'flex' : 'none';
   btn.textContent = open ? '✕ Cerrar selector' : '＋ Agregar ingrediente';
-  if (open) buildCatChips();
+  if (open) {
+    buildCatChips();
+    setTimeout(() => document.getElementById('ingBuscador')?.focus(), 80);
+  } else {
+    // Reset search
+    const buscador = document.getElementById('ingBuscador');
+    if (buscador) buscador.value = '';
+    const results = document.getElementById('ingSearchResults');
+    if (results) { results.style.display = 'none'; results.innerHTML = ''; }
+  }
 };
 
 window.abrirModalReceta = (id = null) => {
