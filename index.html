@@ -635,15 +635,15 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB76R4iR0eLPHz1n6BXbuC6JDeAgaUKC8I",
-  authDomain: "arthur-sistema-pedidos-dev.firebaseapp.com",
-  projectId: "arthur-sistema-pedidos-dev",
-  storageBucket: "arthur-sistema-pedidos-dev.firebasestorage.app",
-  messagingSenderId: "901390401278",
-  appId: "1:901390401278:web:bd11702dcb995f1abcefaf"
+  apiKey: "AIzaSyC_dkvixcRfzRMxXTAAxjcDuhbsMajApxI",
+  authDomain: "arthur-sistema-pedidos.firebaseapp.com",
+  projectId: "arthur-sistema-pedidos",
+  storageBucket: "arthur-sistema-pedidos.firebasestorage.app",
+  messagingSenderId: "1039699696450",
+  appId: "1:1039699696450:web:f4af86b423eb1b2e8706db"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -1246,6 +1246,20 @@ window.guardarReceta = async () => {
   if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
   if (!porciones || porciones < 1) { showToast('⚠ Ingresá las porciones'); return; }
   if (!recIngredientes.length) { showToast('⚠ Agregá al menos un ingrediente'); return; }
+
+  // Show loading state
+  const btnGuardar = document.querySelector('.btn-save-rec');
+  const textoOriginal = btnGuardar.textContent;
+  btnGuardar.disabled = true;
+  btnGuardar.innerHTML = `<span style="display:inline-flex;align-items:center;gap:8px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/>
+      </path>
+    </svg>
+    Guardando...
+  </span>`;
+
   const categoria = document.getElementById('recCategoria').value;
   const receta = { nombre, porciones, margen, categoria, ingredientes: recIngredientes, updatedAt: Date.now() };
   try {
@@ -1264,6 +1278,9 @@ window.guardarReceta = async () => {
     if (!editingRecetaId) recetas.push(receta);
     else { const i=recetas.findIndex(r=>r.id===editingRecetaId); if(i>=0) recetas[i]=receta; }
   }
+
+  btnGuardar.disabled = false;
+  btnGuardar.textContent = textoOriginal;
   document.getElementById('recModalOverlay').classList.remove('open');
   document.body.style.overflow = '';
   showToast(`✓ Receta "${nombre}" guardada`);
@@ -1480,17 +1497,23 @@ window.cerrarCatPicker = () => {
 
 async function init() {
   try {
-    const snap = await getDoc(doc(db,'data','prices'));
-    if (snap.exists()) prices = snap.data();
-    const psnap = await getDoc(doc(db,'data','presentations'));
-    if (psnap.exists()) presentations = psnap.data();
-    const q = query(collection(db,'historial'), orderBy('timestamp','desc'));
-    const hsnap = await getDocs(q);
-    historial = hsnap.docs.map(d=>({id:d.id,...d.data()}));
-    await loadCustomProducts();
-    await loadCustomProviders();
-    await loadRecetas();
-    await loadInsumoCategories();
+    // Cargar en paralelo todo lo que no depende entre sí
+    const [pricesSnap, presSnap, hSnap] = await Promise.all([
+      getDoc(doc(db,'data','prices')),
+      getDoc(doc(db,'data','presentations')),
+      getDocs(query(collection(db,'historial'), orderBy('timestamp','desc'), limit(100))),
+    ]);
+    if (pricesSnap.exists()) prices = pricesSnap.data();
+    if (presSnap.exists()) presentations = presSnap.data();
+    historial = hSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    // Estas también en paralelo
+    await Promise.all([
+      loadCustomProducts(),
+      loadCustomProviders(),
+      loadRecetas(),
+      loadInsumoCategories(),
+    ]);
   } catch(e) { console.warn('Firebase offline, using local mode'); }
   buildFilterBar();
   buildCards();
