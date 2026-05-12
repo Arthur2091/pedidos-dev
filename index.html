@@ -225,6 +225,17 @@
   .ins-empty { padding: 20px 18px; font-size: 13px; color: var(--ink3); font-style: italic; text-align: center; }
   .ins-assign-btn { font-size: 11px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--ink3); cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
   .ins-assign-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+  .cat-picker-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300; align-items: center; justify-content: center; padding: 16px; }
+  .cat-picker-overlay.open { display: flex; }
+  .cat-picker { background: var(--surface); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 8px 40px rgba(0,0,0,0.2); animation: slideUp 0.2s ease; }
+  .cat-picker-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .cat-picker-sub { font-size: 12px; color: var(--ink2); margin-bottom: 16px; }
+  .cat-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .cat-picker-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); color: var(--ink); cursor: pointer; text-align: left; transition: all 0.15s; display: flex; align-items: center; gap: 8px; }
+  .cat-picker-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+  .cat-picker-btn.current { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .cat-picker-cancel { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 9px; border-radius: 8px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
+  .cat-picker-cancel:hover { background: var(--surface2); }
 
   /* SELECTOR DE INGREDIENTES POR CATEGORÍA */
   .ing-selector { display: flex; flex-direction: column; gap: 10px; }
@@ -487,6 +498,16 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- MODAL SELECTOR DE CATEGORÍA -->
+<div class="cat-picker-overlay" id="catPickerOverlay">
+  <div class="cat-picker">
+    <div class="cat-picker-title" id="catPickerTitle">Asignar categoría</div>
+    <div class="cat-picker-sub" id="catPickerSub"></div>
+    <div class="cat-picker-grid" id="catPickerGrid"></div>
+    <button class="cat-picker-cancel" onclick="cerrarCatPicker()">Cancelar</button>
+  </div>
+</div>
 
 <!-- INSUMOS VIEW -->
 <div id="viewInsumos">
@@ -1426,18 +1447,35 @@ window.filtrarInsumos = (term) => {
   renderInsumos();
 };
 
-window.asignarCategoria = async (k, nombre) => {
-  const opts = CATEGORIAS_RECETA.map(c => `${c.icon} ${c.label}`).join('\n');
-  const actual = insumoCategories[k] || 'otros';
-  const catActual = CATEGORIAS_RECETA.find(c => c.id === actual);
+let catPickerKey = null;
+let catPickerNombre = null;
 
-  const sel = prompt(`Asignar "${nombre}" a categoría:\n\n${CATEGORIAS_RECETA.map((c,i)=>`${i+1}. ${c.icon} ${c.label}`).join('\n')}\n\nIngresá el número (actual: ${catActual?.label || 'Otros'}):`);
-  if (!sel) return;
-  const idx = parseInt(sel) - 1;
-  if (idx < 0 || idx >= CATEGORIAS_RECETA.length) { showToast('⚠ Número inválido'); return; }
-  await saveInsumoCategory(k, CATEGORIAS_RECETA[idx].id);
-  showToast(`✓ "${nombre}" → ${CATEGORIAS_RECETA[idx].label}`);
+window.asignarCategoria = (k, nombre) => {
+  catPickerKey = k;
+  catPickerNombre = nombre;
+  const actual = insumoCategories[k] || 'otros';
+  document.getElementById('catPickerTitle').textContent = `Categoría para "${nombre}"`;
+  document.getElementById('catPickerSub').textContent = `Actual: ${CATEGORIAS_RECETA.find(c=>c.id===actual)?.label || 'Otros'}`;
+  document.getElementById('catPickerGrid').innerHTML = CATEGORIAS_RECETA.map(cat => `
+    <button class="cat-picker-btn ${cat.id === actual ? 'current' : ''}" onclick="confirmarCategoria('${cat.id}')">
+      <span style="font-size:18px">${cat.icon}</span>${cat.label}
+    </button>`).join('');
+  document.getElementById('catPickerOverlay').classList.add('open');
+};
+
+window.confirmarCategoria = async (catId) => {
+  if (!catPickerKey) return;
+  await saveInsumoCategory(catPickerKey, catId);
+  const cat = CATEGORIAS_RECETA.find(c => c.id === catId);
+  showToast(`✓ "${catPickerNombre}" → ${cat.label}`);
+  cerrarCatPicker();
   renderInsumos();
+};
+
+window.cerrarCatPicker = () => {
+  document.getElementById('catPickerOverlay').classList.remove('open');
+  catPickerKey = null;
+  catPickerNombre = null;
 };
 
 async function init() {
@@ -2016,6 +2054,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (document.getElementById('recModalOverlay').classList.contains('open')) {
       cerrarModalReceta();
+    }
+    if (document.getElementById('catPickerOverlay').classList.contains('open')) {
+      cerrarCatPicker();
     }
   }
 });
