@@ -2510,16 +2510,42 @@ window.renderPendientes = () => {
     list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🚚</div>No hay pedidos pendientes.<br>Los pedidos enviados por WhatsApp aparecerán acá.</div>`;
     return;
   }
-  // Pendientes primero, luego recibidos
-  const sorted = [...pedidosPendientes].sort((a,b) => {
-    if (a.estado === b.estado) return 0;
-    return a.estado === 'pendiente' ? -1 : 1;
+
+  // Separar: con fecha de entrega y sin fecha
+  const conFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && p.fechaEntrega);
+  const sinFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && !p.fechaEntrega);
+  const recibidos = pedidosPendientes.filter(p => p.estado === 'recibido');
+
+  // Con fecha → ordenar por fecha de entrega asc
+  conFecha.sort((a,b) => a.fechaEntrega.localeCompare(b.fechaEntrega));
+  // Sin fecha → ordenar por fecha de pedido asc (orden de carga)
+  sinFecha.sort((a,b) => {
+    const fa = a.fechaPedido?.toDate ? a.fechaPedido.toDate() : new Date(0);
+    const fb = b.fechaPedido?.toDate ? b.fechaPedido.toDate() : new Date(0);
+    return fa - fb;
   });
+  // Recibidos → más recientes primero
+  recibidos.sort((a,b) => {
+    const fa = a.fechaPedido?.toDate ? a.fechaPedido.toDate() : new Date(0);
+    const fb = b.fechaPedido?.toDate ? b.fechaPedido.toDate() : new Date(0);
+    return fb - fa;
+  });
+
+  const sorted = [...conFecha, ...sinFecha, ...recibidos];
+
   list.innerHTML = sorted.map(p => {
     const fecha = p.fechaPedido?.toDate ? p.fechaPedido.toDate() : new Date();
     const fechaStr = fecha.toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-    const fechaEntrega = p.fechaEntrega || '';
     const isRecibido = p.estado === 'recibido';
+    const sinFechaEntrega = !isRecibido && !p.fechaEntrega;
+
+    // Format fechaEntrega nicely
+    let fechaEntregaStr = '';
+    if (p.fechaEntrega) {
+      const [y,m,d] = p.fechaEntrega.split('-');
+      fechaEntregaStr = new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
+    }
+
     return `<div class="pend-card ${isRecibido ? 'recibido' : ''}" id="pend-${p.id}">
       <div class="pend-card-header">
         <div class="pend-card-dot ${isRecibido ? 'recibido' : ''}"></div>
@@ -2527,8 +2553,12 @@ window.renderPendientes = () => {
           <div class="pend-card-prov">${p.provName}</div>
           <div class="pend-card-fecha">Pedido: ${fechaStr}</div>
         </div>
-        <span class="pend-card-status ${p.estado}">${isRecibido ? '✅ Recibido' : '⏳ Pendiente'}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="pend-card-status ${p.estado}">${isRecibido ? '✅ Recibido' : '⏳ Pendiente'}</span>
+          ${p.fechaEntrega ? `<span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent)">📅 ${fechaEntregaStr}</span>` : ''}
+        </div>
       </div>
+      ${sinFechaEntrega ? `<div style="background:#FEF3C7;padding:7px 18px;font-size:12px;color:#92400E;display:flex;align-items:center;gap:6px">⚠️ Falta cargar fecha de entrega</div>` : ''}
       <div class="pend-card-body">
         <div class="pend-items">
           ${p.items.map(it => `
@@ -2539,7 +2569,7 @@ window.renderPendientes = () => {
         </div>
         <div class="pend-footer">
           <span class="pend-fecha-label">📅 Entrega:</span>
-          <input class="pend-fecha-inp" type="date" value="${fechaEntrega}"
+          <input class="pend-fecha-inp" type="date" value="${p.fechaEntrega||''}"
             ${isRecibido ? 'disabled' : ''}
             onchange="guardarFechaEntrega('${p.id}', this.value)">
           ${!isRecibido ? `<button class="btn-recibido" onclick="marcarRecibido('${p.id}')">✅ Marcar recibido</button>` : ''}
