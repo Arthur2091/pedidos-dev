@@ -2017,7 +2017,7 @@ async function init() {
   hideLoader();
 }
 
-async function refreshFromFirebase() {
+async function refreshFromFirebase(silent = true) {
   try {
     const [pricesSnap, presSnap, hSnap] = await Promise.all([
       getDoc(doc(db,'data','prices')),
@@ -2034,14 +2034,21 @@ async function refreshFromFirebase() {
       loadInsumoCategories(),
     ]);
     saveToCache();
-    // Refresh UI silently if on recetas or precios
+    // Refresh current view
     const activeTab = document.querySelector('.nav-tab.active')?.dataset?.view;
     if (activeTab === 'recetas') renderRecetas();
+    if (activeTab === 'insumos') renderInsumos();
+    if (activeTab === 'historial') renderHistorial();
+    if (activeTab === 'precios') { buildPreciosGrid(); }
+    if (activeTab === 'pedidos') { buildCards(); buildFilterBar(); }
   } catch(e) {}
 }
 
-// SWITCH VIEW
-window.switchView = (view) => {
+// Auto-refresh cada 2 minutos en background
+setInterval(() => refreshFromFirebase(true), 2 * 60 * 1000);
+
+// SWITCH VIEW — refresca datos al cambiar de solapa
+window.switchView = async (view) => {
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));
   document.getElementById('viewPedidos').style.display  = view==='pedidos'  ?'block':'none';
   document.getElementById('viewPrecios').style.display  = view==='precios'  ?'block':'none';
@@ -2049,15 +2056,21 @@ window.switchView = (view) => {
   document.getElementById('viewRecetas').style.display  = view==='recetas'  ?'block':'none';
   document.getElementById('viewInsumos').style.display  = view==='insumos'  ?'block':'none';
   document.getElementById('summaryBar').style.display   = view==='pedidos'  ?''    :'none';
-  if(view==='historial') renderHistorial();
-  if(view==='recetas') renderRecetas();
-  if(view==='insumos') renderInsumos();
+  // Refresh data for the selected view
+  if (view==='historial') { await refreshFromFirebase(); renderHistorial(); }
+  else if (view==='recetas') { await refreshFromFirebase(); renderRecetas(); }
+  else if (view==='insumos') { await refreshFromFirebase(); renderInsumos(); }
+  else if (view==='precios') { await refreshFromFirebase(); buildPreciosGrid(); }
+  else if (view==='pedidos') { await refreshFromFirebase(); }
 };
 
 // FILTER BAR
 function buildFilterBar() {
   const fb=document.getElementById('filterBar');
+  // Keep only the "Todos" button
+  while (fb.children.length > 1) fb.removeChild(fb.lastChild);
   [...new Set(PROVIDERS.map(p=>p.cat))].forEach(cat=>{
+    if (fb.querySelector(`[data-filter="${cat}"]`)) return; // skip duplicates
     const btn=document.createElement('button');
     btn.className='filter-btn'; btn.dataset.filter=cat;
     btn.textContent=CATS[cat]||cat;
@@ -2073,6 +2086,7 @@ window.setFilter=(f)=>{
 // CARDS
 function buildCards() {
   const container=document.getElementById('cardsContainer');
+  container.innerHTML = '';
   PROVIDERS.forEach(p=>{
     const telChip=p.tel?`<a class="chip chip-tel" href="tel:+54${p.tel.replace(/\D/g,'')}">📞 ${fmtTel(p.tel)}</a>`:`<span class="chip chip-notel">Sin teléfono</span>`;
     const pagoChip=`<span class="${PAGO_CHIP[p.pago]}">${PAGO_LABEL[p.pago]}</span>`;
