@@ -255,6 +255,11 @@
   .ing-del-btn:hover { color: #B91C1C; background: #FEE2E2; }
   .ing-empty-msg { font-size: 12px; color: var(--ink3); font-style: italic; padding: 4px 0; }
   #viewRecetas { display: none; }
+  .rec-cat-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .rec-cat-filter { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .rec-cat-filter:hover { border-color: var(--accent); color: var(--accent); }
+  .rec-cat-filter.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .receta-cat-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-top: 4px; }
   .rec-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
   .rec-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
   .rec-title { font-size: 18px; font-weight: 600; }
@@ -507,6 +512,14 @@
       </div>
       <button class="btn-nueva-receta" onclick="abrirModalReceta()">+ Nueva receta</button>
     </div>
+    <div class="rec-cat-filters" id="recCatFilters">
+      <button class="rec-cat-filter active" data-cat="todas" onclick="filtrarRecetas('todas')">Todas</button>
+      <button class="rec-cat-filter" data-cat="panaderia" onclick="filtrarRecetas('panaderia')">🍞 Panadería</button>
+      <button class="rec-cat-filter" data-cat="pastas" onclick="filtrarRecetas('pastas')">🍝 Pastas</button>
+      <button class="rec-cat-filter" data-cat="pasteleria" onclick="filtrarRecetas('pasteleria')">🎂 Pastelería</button>
+      <button class="rec-cat-filter" data-cat="cocina" onclick="filtrarRecetas('cocina')">🍳 Cocina</button>
+      <button class="rec-cat-filter" data-cat="cafeteria" onclick="filtrarRecetas('cafeteria')">☕ Cafetería</button>
+    </div>
     <div class="recetas-grid" id="recetasGrid"></div>
   </div>
 </div>
@@ -519,9 +532,22 @@
       <button class="modal-close" onclick="cerrarModalReceta()">×</button>
     </div>
     <div class="rec-modal-body">
-      <div>
-        <div class="rec-field-label">Nombre de la receta</div>
-        <input class="rec-field-input" id="recNombre" type="text" placeholder="Ej: Torta Bruce">
+      <div class="rec-row2">
+        <div>
+          <div class="rec-field-label">Nombre de la receta</div>
+          <input class="rec-field-input" id="recNombre" type="text" placeholder="Ej: Torta Bruce">
+        </div>
+        <div>
+          <div class="rec-field-label">Categoría</div>
+          <select class="rec-field-input" id="recCategoria" style="cursor:pointer">
+            <option value="">Sin categoría</option>
+            <option value="panaderia">🍞 Panadería</option>
+            <option value="pastas">🍝 Pastas</option>
+            <option value="pasteleria">🎂 Pastelería</option>
+            <option value="cocina">🍳 Cocina</option>
+            <option value="cafeteria">☕ Cafetería</option>
+          </select>
+        </div>
       </div>
       <div class="rec-row2">
         <div>
@@ -868,8 +894,15 @@ function fmtPrecio(n) {
 }
 
 // ── MODAL RECETA ──
-let recIngredientes = []; // { pid, idx, nombre, provName, cantidad, unidad }
+let recIngredientes = []; // { tipo, pid/recetaId, nombre, provName, cantidad, unidad/porciones }
 let activeCat = null;
+let recCatFiltro = 'todas';
+
+window.filtrarRecetas = (cat) => {
+  recCatFiltro = cat;
+  document.querySelectorAll('.rec-cat-filter').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderRecetas();
+};
 
 window.toggleIngSelector = () => {
   const panel = document.getElementById('ingSelectorPanel');
@@ -887,9 +920,9 @@ window.abrirModalReceta = (id = null) => {
   document.getElementById('recNombre').value = rec?.nombre || '';
   document.getElementById('recPorciones').value = rec?.porciones || '';
   document.getElementById('recMargen').value = rec?.margen || '';
+  document.getElementById('recCategoria').value = rec?.categoria || '';
   recIngredientes = rec?.ingredientes ? rec.ingredientes.map(i => ({...i})) : [];
   activeCat = null;
-  // Reset selector panel
   const panel = document.getElementById('ingSelectorPanel');
   panel.style.display = 'none';
   document.getElementById('btnToggleIng').textContent = '＋ Agregar ingrediente';
@@ -1105,7 +1138,8 @@ window.guardarReceta = async () => {
   if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
   if (!porciones || porciones < 1) { showToast('⚠ Ingresá las porciones'); return; }
   if (!recIngredientes.length) { showToast('⚠ Agregá al menos un ingrediente'); return; }
-  const receta = { nombre, porciones, margen, ingredientes: recIngredientes, updatedAt: Date.now() };
+  const categoria = document.getElementById('recCategoria').value;
+  const receta = { nombre, porciones, margen, categoria, ingredientes: recIngredientes, updatedAt: Date.now() };
   try {
     if (editingRecetaId) {
       await setDoc(doc(db,'recetas', editingRecetaId), receta);
@@ -1147,13 +1181,21 @@ async function loadRecetas() {
   } catch(e) { recetas = []; }
 }
 
+const CAT_LABELS = { panaderia:'🍞 Panadería', pastas:'🍝 Pastas', pasteleria:'🎂 Pastelería', cocina:'🍳 Cocina', cafeteria:'☕ Cafetería' };
+const CAT_COLORS = { panaderia:'#FEF3C7;color:#92400E', pastas:'#FEE2E2;color:#991B1B', pasteleria:'#FCE7F3;color:#9D174D', cocina:'#D1FAE5;color:#065F46', cafeteria:'#EDE9FE;color:#5B21B6' };
+
 window.renderRecetas = () => {
   const grid = document.getElementById('recetasGrid');
+  const filtradas = recCatFiltro === 'todas' ? recetas : recetas.filter(r => (r.categoria || '') === recCatFiltro);
   if (!recetas.length) {
     grid.innerHTML = `<div class="rec-empty"><div class="rec-empty-icon">👨‍🍳</div>No hay recetas todavía.<br>Creá la primera con el botón de arriba.</div>`;
     return;
   }
-  grid.innerHTML = recetas.map(rec => {
+  if (!filtradas.length) {
+    grid.innerHTML = `<div class="rec-empty"><div class="rec-empty-icon">🔍</div>No hay recetas en esta categoría.</div>`;
+    return;
+  }
+  grid.innerHTML = filtradas.map(rec => {
     let costoTotal = 0;
     let algunSinPrecio = false;
     const ingRows = rec.ingredientes.map(ing => {
@@ -1187,6 +1229,7 @@ window.renderRecetas = () => {
         <div>
           <div class="receta-card-title">${rec.nombre}</div>
           <div class="receta-card-meta">${rec.porciones} porción${rec.porciones!==1?'es':''} · ${rec.margen||0}% margen${algunSinPrecio?' · ⚠ faltan precios':''}</div>
+          ${rec.categoria && CAT_LABELS[rec.categoria] ? `<span class="receta-cat-badge" style="background:${CAT_COLORS[rec.categoria].split(';')[0]};${CAT_COLORS[rec.categoria].split(';')[1]}">${CAT_LABELS[rec.categoria]}</span>` : ''}
         </div>
         <div class="receta-actions">
           <button class="btn-edit-rec" onclick="abrirModalReceta('${rec.id}')" title="Editar">✏️</button>
