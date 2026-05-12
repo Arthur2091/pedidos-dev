@@ -579,7 +579,10 @@ const PAGO_LABEL = { transfer:"Transferencia", efectivo:"Efectivo", ambos:"Trans
 const PAGO_CHIP  = { transfer:"chip chip-transfer", efectivo:"chip chip-efectivo", ambos:"chip chip-ambos" };
 
 const state = {};
-PROVIDERS.forEach(p => state[p.id] = {});
+PROVIDERS.forEach(p => {
+  p.products.sort((a,b) => a.localeCompare(b, 'es', {sensitivity:'base'}));
+  state[p.id] = {};
+});
 let currentModalProvider = null;
 const now = new Date();
 
@@ -1433,24 +1436,21 @@ window.confirmAddInsumo=async(pid)=>{
   const p=PROVIDERS.find(x=>x.id===pid);
   if(p.products.map(x=>x.toLowerCase()).includes(nombre.toLowerCase())){showToast('⚠ Ya existe ese insumo'); return;}
 
-  // Add to local array
-  const newIdx=p.products.length;
+  // Insert in alphabetical order
   p.products.push(nombre);
+  p.products.sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
 
-  // Save to Firebase custom products
+  // Save to Firebase
   await saveCustomProducts(pid, p.products);
 
-  // Render new row
+  // Rebuild precios list in order
   const list=document.getElementById(`plist-${pid}`);
-  const div=document.createElement('div');
-  div.innerHTML=renderPrecioRow(pid, p.name, nombre, newIdx);
-  list.appendChild(div.firstElementChild);
+  if(list) list.innerHTML=p.products.map((prod,i)=>renderPrecioRow(pid, p.name, prod, i)).join('');
 
-  // Update meta
+  // Rebuild pedidos card in order
+  rebuildPedidosCard(pid);
+
   updatePrecioMeta(pid);
-  // Also add to pedidos card
-  addProductToCard(pid, nombre, newIdx);
-
   toggleAddInsumo(pid);
   showToast(`✓ "${nombre}" agregado a ${p.name}`);
 };
@@ -1521,7 +1521,7 @@ async function loadCustomProviders(){
             products = cpSnap.data().products;
           }
         } catch(e) {}
-        PROVIDERS.push({ id: d.id, name: data.name, cat: data.cat, tel: data.tel||'', pago: data.pago||'transfer', products });
+        PROVIDERS.push({ id: d.id, name: data.name, cat: data.cat, tel: data.tel||'', pago: data.pago||'transfer', products: products.sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'})) });
         state[d.id] = {};
       }
     }
@@ -1532,7 +1532,7 @@ async function loadCustomProducts(){
   try {
     for(const p of PROVIDERS){
       const snap=await getDoc(doc(db,'customProducts', p.id));
-      if(snap.exists()) p.products=[...snap.data().products];
+      if(snap.exists()) p.products=[...snap.data().products].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
     }
   } catch(e){ console.warn('Could not load custom products', e); }
 }
