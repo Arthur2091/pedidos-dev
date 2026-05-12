@@ -2727,6 +2727,24 @@ window.toggleProvPagos = (provName) => {
   if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
 };
 
+window.marcarPagadoDesde = async (id) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  const medio = document.getElementById(`mpago-${id}`)?.value || 'transfer';
+  const montoInput = document.getElementById(`monto-${id}`)?.value;
+  const monto = parseFloat(montoInput) || 0;
+  const ahora = new Date().toISOString();
+  if (!p.pago) p.pago = {};
+  p.pago.pagado = true;
+  p.pago.fechaPago = ahora;
+  p.pago.medio = medio;
+  p.pago.monto = monto;
+  try { await setDoc(doc(db,'pedidosPendientes',id), {pago: p.pago}, {merge:true}); } catch(e) {}
+  showToast(`✓ Pago registrado — ${medio==='efectivo'?'Efectivo':'Transfer'}${monto?` · $${Math.round(monto).toLocaleString('es-AR')}`:''}`);
+  renderPagos();
+  updatePagosBadge();
+};
+
 window.editarPago = async (id) => {
   const p = pedidosPendientes.find(x => x.id === id);
   if (!p) return;
@@ -2750,22 +2768,6 @@ window.eliminarPago = async (id) => {
     await dd(doc(db,'pedidosPendientes',id));
   } catch(e) {}
   showToast('🗑 Pedido eliminado');
-  renderPagos();
-  updatePagosBadge();
-};
-  const p = pedidosPendientes.find(x => x.id === id);
-  if (!p) return;
-  const medio = document.getElementById(`mpago-${id}`)?.value || 'transfer';
-  const montoInput = document.getElementById(`monto-${id}`)?.value;
-  const monto = parseFloat(montoInput) || 0;
-  const ahora = new Date().toISOString();
-  if (!p.pago) p.pago = {};
-  p.pago.pagado = true;
-  p.pago.fechaPago = ahora;
-  p.pago.medio = medio;
-  p.pago.monto = monto;
-  try { await setDoc(doc(db,'pedidosPendientes',id), {pago: p.pago}, {merge:true}); } catch(e) {}
-  showToast(`✓ Pago registrado — ${medio === 'efectivo' ? 'Efectivo' : 'Transferencia'}${monto ? ` · $${Math.round(monto).toLocaleString('es-AR')}` : ''}`);
   renderPagos();
   updatePagosBadge();
 };
