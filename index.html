@@ -21,7 +21,7 @@
   /* HEADER */
   header { background: var(--ink); color: #fff; padding: 14px 24px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
-  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
   .nav-tab { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 8px; border: none; background: transparent; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; }
   .nav-tab:hover { color: #fff; background: rgba(255,255,255,0.1); }
   .nav-tab.active { color: #fff; background: rgba(255,255,255,0.15); }
@@ -369,6 +369,7 @@
   .ing-del-btn:hover { color: #B91C1C; background: #FEE2E2; }
   .ing-empty-msg { font-size: 12px; color: var(--ink3); font-style: italic; padding: 4px 0; }
   #viewRecetas { display: none; }
+  #viewVentas { display: none; }
   .rec-cat-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
   .rec-cat-filter { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .rec-cat-filter:hover { border-color: var(--accent); color: var(--accent); }
@@ -438,6 +439,41 @@
   .rec-empty { padding: 60px; text-align: center; color: var(--ink3); font-size: 14px; grid-column: 1/-1; }
   .rec-empty-icon { font-size: 40px; margin-bottom: 12px; }
 
+  /* VENTAS */
+  .ventas-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .ventas-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .ventas-kpi-bar { display: flex; gap: 12px; flex-wrap: wrap; padding: 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .ventas-kpi-item { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; background: var(--surface2); border-radius: var(--radius); border: 1px solid var(--border); }
+  .ventas-kpi-label { font-size: 11px; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+  .ventas-kpi-value { font-size: 20px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--ink); letter-spacing: -0.5px; }
+  .ventas-import-list { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+  .ventas-import-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
+  .ventas-import-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: background 0.15s; }
+  .ventas-import-header:hover { background: var(--surface2); }
+  .ventas-import-header-left { display: flex; flex-direction: column; gap: 2px; }
+  .ventas-import-periodo { font-size: 14px; font-weight: 600; }
+  .ventas-import-meta { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+  .ventas-import-totals { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .ventas-import-total-item { text-align: right; }
+  .ventas-import-total-label { font-size: 10px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.4px; }
+  .ventas-import-total-value { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--accent); }
+  .ventas-import-body { display: none; padding: 0 18px 14px; border-top: 1px solid var(--border); }
+  .ventas-import-body.open { display: block; }
+  .ventas-item-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  .ventas-item-table th { background: var(--surface2); padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.4px; }
+  .ventas-item-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .ventas-item-table tr:last-child td { border-bottom: none; }
+  .ventas-item-row:hover td { background: var(--surface2); }
+  .ventas-item-flagged td { background: #FFF7ED; }
+  .ventas-item-flagged td:first-child::before { content: '⚠ '; font-size: 10px; }
+  .ventas-flag-badge { display: inline-block; font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: #FEF3C7; color: #92400E; margin-left: 4px; }
+  .mapping-modal { max-width: 700px !important; }
+  .mapping-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 50vh; overflow-y: auto; }
+  .mapping-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface2); border-radius: 8px; flex-wrap: wrap; }
+  .mapping-row-name { flex: 1; font-size: 13px; font-weight: 500; min-width: 140px; }
+  .mapping-row select { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; cursor: pointer; flex: 1; min-width: 180px; }
+  .mapping-row select:focus { border-color: var(--accent); }
+
   @media (max-width: 600px) {
     main, .precios-grid { grid-template-columns: 1fr; padding: 12px 10px; }
     .nav-tab span { display: none; }
@@ -450,7 +486,7 @@
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="loginScreen" style="display:flex;position:fixed;inset:0;background:var(--ink);z-index:1000;align-items:center;justify-content:center;padding:24px">
+<div id="loginScreen" style="display:none;position:fixed;inset:0;background:var(--ink);z-index:1000;align-items:center;justify-content:center;padding:24px">
   <div style="background:var(--surface);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.3)">
     <div style="font-size:40px;margin-bottom:12px">🛒</div>
     <div style="font-size:22px;font-weight:600;letter-spacing:-0.5px;margin-bottom:6px">Sistema de Pedidos</div>
@@ -495,6 +531,7 @@
       <button class="nav-tab" data-view="historial" onclick="switchView('historial')">🕒 <span>Historial</span></button>
       <button class="nav-tab" data-view="recetas" onclick="switchView('recetas')">👨‍🍳 <span>Recetas</span></button>
       <button class="nav-tab" data-view="insumos" onclick="switchView('insumos')">🗂 <span>Insumos</span></button>
+      <button class="nav-tab" data-view="ventas" onclick="switchView('ventas')">💰 <span>Ventas</span></button>
       <button class="nav-tab" data-view="pendientes" onclick="switchView('pendientes')">🚚 <span>Pendientes</span></button>
       <button class="nav-tab" data-view="pagos" onclick="switchView('pagos')" id="tab-pagos">💳 <span>Pagos</span><span id="pagos-badge" style="display:none;margin-left:5px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;vertical-align:middle"></span></button>
     </nav>
@@ -930,10 +967,78 @@
   </div>
 </div>
 
+<!-- VENTAS VIEW -->
+<div id="viewVentas">
+  <div class="ventas-kpi-bar">
+    <div class="ventas-kpi-item"><span class="ventas-kpi-label">Ingresos</span><span class="ventas-kpi-value" id="kpiIngresos">—</span></div>
+    <div class="ventas-kpi-item"><span class="ventas-kpi-label">Costo</span><span class="ventas-kpi-value" id="kpiCosto">—</span></div>
+    <div class="ventas-kpi-item"><span class="ventas-kpi-label">Ganancia real</span><span class="ventas-kpi-value" id="kpiGanancia">—</span></div>
+    <div class="ventas-kpi-item"><span class="ventas-kpi-label">Margen</span><span class="ventas-kpi-value" id="kpiMargen">—</span></div>
+  </div>
+  <div style="padding:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <button class="btn-nueva-receta" onclick="abrirImportarExcel()">📥 Importar Excel Maxirest</button>
+    <label style="font-size:13px;color:var(--ink2);font-weight:500">Desde</label>
+    <input type="date" id="ventasDesde" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink);outline:none" onchange="ventasAplicarFiltroFechas()">
+    <label style="font-size:13px;color:var(--ink2);font-weight:500">Hasta</label>
+    <input type="date" id="ventasHasta" style="font-family:'DM Sans',sans-serif;font-size:13px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink);outline:none" onchange="ventasAplicarFiltroFechas()">
+  </div>
+  <div class="ventas-import-list" id="ventasImportList"></div>
+</div>
+<input type="file" id="ventasFileInput" accept=".xlsx,.xls" hidden onchange="handleFileUpload(this)">
+
+<!-- MODAL PREVIEW IMPORTACION VENTAS -->
+<div class="rec-modal-overlay" id="ventasPreviewOverlay">
+  <div class="rec-modal">
+    <div class="rec-modal-header">
+      <span class="rec-modal-title">Importar ventas Maxirest</span>
+      <button class="modal-close" onclick="document.getElementById('ventasPreviewOverlay').classList.remove('open');document.getElementById('ventasFileInput').value=''">×</button>
+    </div>
+    <div class="rec-modal-body">
+      <div id="ventasPreviewStats" style="background:var(--surface2);border-radius:10px;padding:14px 16px;display:flex;gap:16px;flex-wrap:wrap"></div>
+      <div>
+        <div class="rec-field-label">Período (ej: Mayo 2026)</div>
+        <input class="rec-field-input" id="ventasPeriodoLabel" type="text" placeholder="Mayo 2026">
+      </div>
+      <div>
+        <div class="rec-field-label">Fecha del período</div>
+        <input class="rec-field-input" id="ventasFechaPeriodo" type="date">
+      </div>
+      <div>
+        <div class="rec-field-label">Canal (opcional)</div>
+        <input class="rec-field-input" id="ventasCanal" type="text" placeholder="general">
+      </div>
+      <div id="ventasPreviewDiscarded" style="display:none"></div>
+    </div>
+    <div class="rec-modal-footer">
+      <button class="btn-cancel-rec" onclick="document.getElementById('ventasPreviewOverlay').classList.remove('open');document.getElementById('ventasFileInput').value=''">Cancelar</button>
+      <button class="btn-save-rec" onclick="ventasPreviewContinuar()">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MAPEO MAXIREST -->
+<div class="rec-modal-overlay" id="mappingModalOverlay">
+  <div class="rec-modal mapping-modal">
+    <div class="rec-modal-header">
+      <span class="rec-modal-title">Mapear ítems sin receta</span>
+      <button class="modal-close" onclick="document.getElementById('mappingModalOverlay').classList.remove('open')">×</button>
+    </div>
+    <div class="rec-modal-body">
+      <p style="font-size:13px;color:var(--ink2);margin-bottom:8px">Asigná una receta a cada ítem no reconocido. El mapeo se guarda para futuras importaciones.</p>
+      <div class="mapping-list" id="mappingList"></div>
+    </div>
+    <div class="rec-modal-footer">
+      <button class="btn-cancel-rec" onclick="document.getElementById('mappingModalOverlay').classList.remove('open')">Cancelar</button>
+      <button class="btn-save-rec" onclick="confirmarMapeoYContinuar()">Confirmar mapeo</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, query, where, orderBy, getDocs, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB76R4iR0eLPHz1n6BXbuC6JDeAgaUKC8I",
@@ -947,11 +1052,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-let currentUser = null;
+let currentUser = { email: 'hernan.layno@gmail.com', displayName: 'Hernán', photoURL: null };
 
 let prices = {};
 let historial = [];
+let snapUnsubs = [];
+let _rt;
 
 const PROVIDERS = [
   { id:"quintela",  name:"Quintela",                  cat:"almacen",     tel:"1169886530", pago:"transfer", condPago:"7dias",   products:["Aceite girasol","Azucar muñeca","Anchoas","Caldo Deshidratado","Durazno en lata","Mayonesa Hellmans","Ketchup Sobre","Muzzarella","Mostaza","Pan rallado","Sal fina","Tomate perita","Tomate triturado","Vinagre x Litro","Cafe soluble instantaneo","Fritolin","Maizena","Polvo de hornear","Fideos Mostachol/Codito","Sal fina en sobre","Sobre ind. Mayonesa","Sobre ind. Ketchup","Sobre ind. Mostaza"] },
@@ -1183,6 +1289,11 @@ window.cancelarEditInsumo = (pid, idx) => {
 let recetas = [];
 let editingRecetaId = null;
 
+let ventasData = [];
+let mapaMaxirestCache = {};
+let recetasMap = {};
+let _pendingImport = null;
+
 const UNIDADES = ['g','kg','ml','L','u','cdita','cda','taza'];
 const UNIDAD_A_BASE = { g:1, kg:1000, ml:1, L:1000, u:1, cdita:5, cda:15, taza:240 };
 const UNIDAD_EQUIV = { cdita:'≈ 5ml', cda:'≈ 15ml', taza:'≈ 240ml' };
@@ -1237,7 +1348,7 @@ window.handlePresChange = async (k, el, type) => {
   }
   // Save to Firebase
   try {
-    await setDoc(doc(db, 'data', 'presentations'), presentations);
+    await updateDoc(doc(db, 'data', 'presentations'), { [k]: { qty: qty || 0, unit } });
   } catch(e) {}
 };
 
@@ -1642,6 +1753,259 @@ async function loadRecetas() {
   } catch(e) { recetas = []; }
 }
 
+function buildRecetasMap() {
+  recetasMap = {};
+  recetas.forEach(r => { recetasMap[r.id] = r; });
+}
+
+async function loadMapaMaxirest() {
+  try {
+    const snap = await getDocs(collection(db,'mapaMaxirest'));
+    mapaMaxirestCache = {};
+    snap.docs.forEach(d => { mapaMaxirestCache[d.id] = d.data(); });
+  } catch(e) { mapaMaxirestCache = {}; }
+}
+
+async function loadVentas() {
+  try {
+    const snap = await getDocs(query(collection(db,'ventas'), orderBy('fechaPeriodo','desc')));
+    ventasData = snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e) { ventasData = []; }
+}
+
+window.abrirImportarExcel = () => document.getElementById('ventasFileInput').click();
+
+window.handleFileUpload = (inputEl) => {
+  const file = inputEl.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'xlsx' && ext !== 'xls') {
+    showToast('⚠ Formato inválido. Solo se aceptan archivos .xlsx o .xls');
+    inputEl.value = '';
+    return;
+  }
+  parseExcel(file).catch(e => { showToast('Error al leer el archivo'); console.error(e); });
+};
+
+async function parseExcel(file) {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  if (!rawRows.length) { showToast('⚠ El archivo está vacío'); return; }
+  const headers = rawRows[0].map(h => String(h).trim().toUpperCase());
+  const dataRows = rawRows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
+    return obj;
+  });
+  const validation = validateExcelRows(dataRows, headers);
+  if (!validation.ok) {
+    showToast('⚠ Columnas faltantes: ' + validation.missingCols.join(', '));
+    document.getElementById('ventasFileInput').value = '';
+    return;
+  }
+  renderImportPreview(validation.validRows, validation.discardedRows);
+}
+
+function validateExcelRows(rows, headers) {
+  const required = ['RUBRO','CODIGO','NOMBRE','UNIDADES','VENTA'];
+  const missingCols = required.filter(c => !headers.includes(c));
+  if (missingCols.length) return { ok: false, missingCols, validRows: [], discardedRows: [] };
+  const validRows = [];
+  const discardedRows = [];
+  rows.forEach(row => {
+    const nombre = String(row['NOMBRE'] || '').trim();
+    const codigo = String(row['CODIGO'] || '').trim();
+    if (!nombre || nombre === '—' || !codigo || codigo === '—') return;
+    const u = parseFloat(row['UNIDADES']) || 0;
+    const v = parseFloat(row['VENTA']) || 0;
+    validRows.push({ ...row, UNIDADES: u, VENTA: v });
+  });
+  return { ok: true, missingCols: [], validRows, discardedRows };
+}
+
+function normalizeName(s) {
+  return String(s).toLowerCase().trim()
+    .normalize('NFD').replace(/\p{Mn}/gu, '')
+    .replace(/\s+/g, ' ');
+}
+
+function renderImportPreview(validRows, discardedRows) {
+  _pendingImport = { validRows, discardedRows, matched: [], unmatched: [] };
+  const stats = document.getElementById('ventasPreviewStats');
+  stats.innerHTML = `
+    <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:0.5px">Filas válidas</div><div style="font-size:22px;font-weight:600;color:var(--accent)">${validRows.length}</div></div>
+    <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:0.5px">Descartadas</div><div style="font-size:22px;font-weight:600;color:${discardedRows.length?'#B91C1C':'var(--ink3)'}">${discardedRows.length}</div></div>
+  `;
+  const discEl = document.getElementById('ventasPreviewDiscarded');
+  if (discardedRows.length) {
+    discEl.style.display = 'block';
+    discEl.innerHTML = `<div style="background:#FEF3C7;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400E"><strong>Filas descartadas:</strong> ${discardedRows.map(r=>r['NOMBRE']||r['CODIGO']||'—').join(', ')}</div>`;
+  } else {
+    discEl.style.display = 'none';
+  }
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('ventasFechaPeriodo').value = today;
+  document.getElementById('ventasPeriodoLabel').value = '';
+  document.getElementById('ventasCanal').value = '';
+  document.getElementById('ventasPreviewOverlay').classList.add('open');
+}
+
+window.ventasPreviewContinuar = async () => {
+  const periodoLabel = document.getElementById('ventasPeriodoLabel').value.trim();
+  const fechaPeriodo = document.getElementById('ventasFechaPeriodo').value;
+  const canal = document.getElementById('ventasCanal').value.trim() || 'general';
+  if (!periodoLabel) { showToast('⚠ Ingresá el período'); return; }
+  if (!fechaPeriodo) { showToast('⚠ Ingresá la fecha del período'); return; }
+  _pendingImport.periodoLabel = periodoLabel;
+  _pendingImport.fechaPeriodo = fechaPeriodo;
+  _pendingImport.canal = canal;
+  document.getElementById('ventasPreviewOverlay').classList.remove('open');
+  await resolveMapping(_pendingImport.validRows);
+};
+
+async function resolveMapping(rows) {
+  await loadMapaMaxirest();
+  const recNormMap = {};
+  Object.values(recetasMap).forEach(r => { recNormMap[normalizeName(r.nombre)] = r; });
+  const matched = [];
+  const unmatched = [];
+  rows.forEach(row => {
+    const codigo = String(row['CODIGO']).trim();
+    const nombre = String(row['NOMBRE']).trim();
+    if (mapaMaxirestCache[codigo]) {
+      const m = mapaMaxirestCache[codigo];
+      matched.push({ ...row, recetaId: m.recetaId || null, recetaNombre: m.recetaId ? (recetasMap[m.recetaId]?.nombre || '') : '' });
+    } else {
+      const autoMatch = recNormMap[normalizeName(nombre)];
+      if (autoMatch) {
+        matched.push({ ...row, recetaId: autoMatch.id, recetaNombre: autoMatch.nombre, _autoMatched: true, _codigo: codigo, _nombreMaxirest: nombre });
+      } else {
+        unmatched.push({ ...row, _codigo: codigo, _nombreMaxirest: nombre });
+      }
+    }
+  });
+  _pendingImport.matched = matched;
+  _pendingImport.unmatched = unmatched;
+  if (unmatched.length) {
+    renderMappingModal(unmatched);
+  } else {
+    await confirmarImportacion();
+  }
+}
+
+function renderMappingModal(unmatched) {
+  const list = document.getElementById('mappingList');
+  list.innerHTML = unmatched.map((row, i) => {
+    const opts = `<option value="">— Sin receta (importar igual) —</option>` +
+      Object.values(recetasMap).map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+    return `<div class="mapping-row">
+      <div class="mapping-row-name">${row['NOMBRE']} <small style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3)">${row['CODIGO']}</small></div>
+      <select id="mapSel_${i}" title="Receta para ${row['NOMBRE']}">${opts}</select>
+    </div>`;
+  }).join('');
+  document.getElementById('mappingModalOverlay').classList.add('open');
+}
+
+async function persistMappings(resolvedPairs) {
+  const ops = resolvedPairs.map(({ codigo, nombreMaxirest, recetaId }) =>
+    setDoc(doc(db,'mapaMaxirest', codigo), {
+      nombreMaxirest,
+      recetaId: recetaId || null,
+      confirmadoPor: currentUser.email,
+      updatedAt: serverTimestamp()
+    }, { merge: true }).then(() => {
+      mapaMaxirestCache[codigo] = { nombreMaxirest, recetaId: recetaId || null };
+    })
+  );
+  await Promise.all(ops);
+}
+
+window.confirmarMapeoYContinuar = async () => {
+  const { unmatched } = _pendingImport;
+  const resolvedPairs = unmatched.map((row, i) => ({
+    codigo: row._codigo,
+    nombreMaxirest: row._nombreMaxirest,
+    recetaId: document.getElementById(`mapSel_${i}`).value || null
+  }));
+  await persistMappings(resolvedPairs);
+  resolvedPairs.forEach((pair, i) => {
+    const row = unmatched[i];
+    _pendingImport.matched.push({
+      ...row,
+      recetaId: pair.recetaId,
+      recetaNombre: pair.recetaId ? (recetasMap[pair.recetaId]?.nombre || '') : ''
+    });
+  });
+  document.getElementById('mappingModalOverlay').classList.remove('open');
+  await confirmarImportacion();
+};
+
+window.confirmarImportacion = async () => {
+  const { matched, periodoLabel, fechaPeriodo, canal } = _pendingImport;
+  const existing = ventasData.filter(v => v.periodoLabel === periodoLabel);
+  if (existing.length) {
+    const ok = confirm(`Ya hay ${existing.length} importación(es) para el período "${periodoLabel}". ¿Continuar de todas formas?`);
+    if (!ok) return;
+  }
+  const items = matched.map(row => {
+    const recetaId = row.recetaId || null;
+    const receta = recetaId ? recetasMap[recetaId] : null;
+    const unidades = row['UNIDADES'];
+    const ventaTotal = row['VENTA'];
+    const precioUnitario = unidades > 0 ? ventaTotal / unidades : 0;
+    let costoUnitario = null;
+    let flagSinCosto = true;
+    if (receta) {
+      const c = calcCostoReceta(receta);
+      if (c !== null) { costoUnitario = c; flagSinCosto = false; }
+    }
+    const costoTotal = costoUnitario !== null ? costoUnitario * unidades : null;
+    const gananciaItem = costoTotal !== null ? ventaTotal - costoTotal : null;
+    return {
+      codigoMaxirest: String(row['CODIGO']).trim(),
+      nombreMaxirest: String(row['NOMBRE']).trim(),
+      rubro: String(row['RUBRO'] || '').trim(),
+      recetaId,
+      recetaNombre: row.recetaNombre || '',
+      unidades,
+      ventaTotal,
+      precioUnitario,
+      costoUnitario,
+      costoTotal,
+      gananciaItem,
+      flagSinCosto
+    };
+  });
+  let totalVenta = 0, totalCosto = 0, totalGanancia = 0;
+  items.forEach(it => {
+    totalVenta += it.ventaTotal;
+    if (it.costoTotal !== null) totalCosto += it.costoTotal;
+    if (it.gananciaItem !== null) totalGanancia += it.gananciaItem;
+  });
+  const margenPct = totalVenta > 0 ? (totalGanancia / totalVenta) * 100 : 0;
+  try {
+    await addDoc(collection(db,'ventas'), {
+      periodoLabel,
+      fechaPeriodo,
+      canal,
+      importadoPor: currentUser.email,
+      importadoEn: serverTimestamp(),
+      totales: { ingresos: totalVenta, costo: totalCosto, ganancia: totalGanancia, margenPct },
+      items
+    });
+    showToast('✓ Importación guardada');
+    document.getElementById('ventasFileInput').value = '';
+    _pendingImport = null;
+    await loadVentas();
+    renderVentas();
+  } catch(e) {
+    showToast('⚠ Error al guardar la importación');
+    console.error(e);
+  }
+};
+
 const CAT_LABELS = { panaderia:'🍞 Panadería', pastas:'🍝 Pastas', pasteleria:'🎂 Pastelería', cocina:'🍳 Cocina', cafeteria:'☕ Cafetería', combo_cafeteria:'🥐 Combo Cafetería' };
 const CAT_COLORS = { panaderia:'#FEF3C7;color:#92400E', pastas:'#FEE2E2;color:#991B1B', pasteleria:'#FCE7F3;color:#9D174D', cocina:'#D1FAE5;color:#065F46', cafeteria:'#EDE9FE;color:#5B21B6', combo_cafeteria:'#FFF7ED;color:#C2410C' };
 
@@ -1745,7 +2109,7 @@ async function loadInsumoCategories() {
 
 async function saveInsumoCategory(k, catId) {
   insumoCategories[k] = catId;
-  try { await setDoc(doc(db, 'data', 'insumoCategories'), insumoCategories); } catch(e) {}
+  try { await updateDoc(doc(db, 'data', 'insumoCategories'), { [k]: catId }); } catch(e) {}
 }
 
 let insumosSearchTerm = '';
@@ -1831,17 +2195,17 @@ window.saveInsPresentation = async (k, nombre, provName) => {
   if (!qty || !unit) { showToast('⚠ Ingresá cantidad y unidad'); return; }
   // Save presentation
   presentations[k] = { qty, unit };
-  try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
+  try { await updateDoc(doc(db,'data','presentations'), { [k]: { qty, unit } }); } catch(e) {}
   // Save price if provided
   if (newPrecio && newPrecio > 0) {
     const oldPrice = prices[k] || null;
     prices[k] = newPrecio;
     try {
-      await setDoc(doc(db,'data','prices'), prices);
+      await updateDoc(doc(db,'data','prices'), { [k]: newPrecio });
       await addDoc(collection(db,'historial'), {
         key: k, provName: provName || '', prodName: nombre,
         oldPrice, newPrice: newPrecio,
-        userEmail: 'usuario', userName: 'Usuario',
+        ...auditUser(),
         timestamp: serverTimestamp(),
       });
     } catch(e) {}
@@ -1970,16 +2334,16 @@ window.guardarNuevoInsumo = async () => {
   await saveInsumoCategory(k, catId);
   if (presQty && presUnit) {
     presentations[k] = { qty: presQty, unit: presUnit };
-    try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
+    try { await updateDoc(doc(db,'data','presentations'), { [k]: { qty: presQty, unit: presUnit } }); } catch(e) {}
   }
   if (niPrecio && niPrecio > 0) {
     prices[k] = niPrecio;
     try {
-      await setDoc(doc(db,'data','prices'), prices);
+      await updateDoc(doc(db,'data','prices'), { [k]: niPrecio });
       await addDoc(collection(db,'historial'), {
         key: k, provName: p.name, prodName: nombre,
         oldPrice: null, newPrice: niPrecio,
-        userEmail: 'usuario', userName: 'Usuario',
+        ...auditUser(),
         timestamp: serverTimestamp(),
       });
     } catch(e) {}
@@ -2098,6 +2462,7 @@ window.guardarEditInsumo = async () => {
 
   // 5. Save presentation
   if (presQty && presUnit) presentations[newK] = { qty: presQty, unit: presUnit };
+  // sanctioned whole-doc overwrite — re-key after rename (old key must be removed)
   try { await setDoc(doc(db,'data','presentations'), presentations); } catch(e) {}
 
   // 6. Save price
@@ -2105,11 +2470,12 @@ window.guardarEditInsumo = async () => {
     const oldPrice = prices[newK] || null;
     prices[newK] = nuevoPrecio;
     try {
+      // sanctioned whole-doc overwrite — re-key after rename (old key must be removed)
       await setDoc(doc(db,'data','prices'), prices);
       await addDoc(collection(db,'historial'), {
         key: newK, provName: nuevoPid, prodName: nuevoNombre,
         oldPrice, newPrice: nuevoPrecio,
-        userEmail: 'usuario', userName: 'Usuario',
+        ...auditUser(),
         timestamp: serverTimestamp(),
       });
     } catch(e) {}
@@ -2279,9 +2645,8 @@ window.loginGoogle = async () => {
   }
 };
 
-window.logoutAndReset = async () => {
+window.logoutAndReset = () => {
   sessionStorage.removeItem(CACHE_KEY);
-  await signOut(auth);
 };
 
 // Bind buttons via event listeners
@@ -2302,27 +2667,94 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnDenied) btnDenied.addEventListener('click', () => { sessionStorage.removeItem(CACHE_KEY); signOut(auth); });
 });
 
-// Auth state listener — controla todo el flujo
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    hideLoader();
-    showScreen('loginScreen');
-    return;
-  }
-  if (!AUTHORIZED_EMAILS.includes(user.email.toLowerCase())) {
-    hideLoader();
-    document.getElementById('deniedMsg').textContent = `${user.email} no tiene acceso. Contactá al administrador.`;
-    showScreen('deniedScreen');
-    return;
-  }
-  showScreen(null);
-  const loader = document.getElementById('loaderScreen');
-  if (loader) loader.style.display = 'flex';
-  setupUserUI(user);
+// Arranque con auth anónima (sin pantalla de login)
+signInAnonymously(auth).then(async () => {
+  setupUserUI(currentUser);
   await init();
-});
+}).catch(e => console.error('Auth error:', e));
+
+function scheduleRerender() {
+  clearTimeout(_rt);
+  _rt = setTimeout(rerenderActiveView, 300);
+}
+
+function rerenderActiveView() {
+  // Skip re-render if user is typing in an input
+  const ae = document.activeElement;
+  if (ae && ae.tagName === 'INPUT') return;
+  const activeTab = document.querySelector('.nav-tab.active')?.dataset?.view;
+  switch (activeTab) {
+    case 'precios':    buildPreciosGrid(); break;
+    case 'pedidos':    buildCards(); buildFilterBar(); break;
+    case 'historial':  renderHistorial(); break;
+    case 'pendientes': renderPendientes(); break;
+    case 'recetas':    renderRecetas(); break;
+    case 'insumos':    renderInsumos(); break;
+    case 'ventas':     if (ventasData.length) renderVentas(); break;
+  }
+}
+
+function registerListeners() {
+  // prices
+  snapUnsubs.push(onSnapshot(doc(db,'data','prices'), snap => {
+    if (snap.exists()) prices = snap.data();
+    scheduleRerender();
+  }));
+  // presentations
+  snapUnsubs.push(onSnapshot(doc(db,'data','presentations'), snap => {
+    if (snap.exists()) presentations = snap.data();
+    scheduleRerender();
+  }));
+  // insumoCategories
+  snapUnsubs.push(onSnapshot(doc(db,'data','insumoCategories'), snap => {
+    if (snap.exists()) insumoCategories = snap.data();
+    scheduleRerender();
+  }));
+  // pedidosPendientes
+  snapUnsubs.push(onSnapshot(
+    query(collection(db,'pedidosPendientes'), orderBy('fechaPedido','desc')),
+    snap => {
+      pedidosPendientes = snap.docs.map(d => ({id:d.id,...d.data()}));
+      scheduleRerender();
+    }
+  ));
+  // historial
+  snapUnsubs.push(onSnapshot(
+    query(collection(db,'historial'), orderBy('timestamp','desc'), limit(100)),
+    snap => {
+      historial = snap.docs.map(d => ({id:d.id,...d.data()}));
+      scheduleRerender();
+    }
+  ));
+  // providerConfig
+  snapUnsubs.push(onSnapshot(collection(db,'providerConfig'), snap => {
+    snap.docs.forEach(d => {
+      const p = PROVIDERS.find(x => x.id === d.id);
+      if (p && d.data().condPago) p.condPago = d.data().condPago;
+    });
+    scheduleRerender();
+  }));
+}
+
+function auditUser() {
+  return {
+    userEmail: currentUser?.email || 'desconocido',
+    userName: currentUser?.displayName || currentUser?.email || 'desconocido',
+  };
+}
+
+async function ensureDataDocs() {
+  try {
+    await Promise.all([
+      setDoc(doc(db, 'data', 'prices'),          {}, { merge: true }),
+      setDoc(doc(db, 'data', 'presentations'),   {}, { merge: true }),
+      setDoc(doc(db, 'data', 'insumoCategories'),{}, { merge: true }),
+    ]);
+  } catch(e) { console.warn('ensureDataDocs failed', e); }
+}
 
 async function init() {
+  await ensureDataDocs();
   // Try cache first — show UI instantly
   const fromCache = loadFromCache();
   if (fromCache) {
@@ -2335,6 +2767,7 @@ async function init() {
     const fEl = document.getElementById('fecha-hdr');
     if (fEl) fEl.textContent = now.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
     hideLoader();
+    registerListeners();
     // Refresh in background silently
     refreshFromFirebase();
     return;
@@ -2360,6 +2793,7 @@ async function init() {
       loadRecetas(),
       loadInsumoCategories(),
       loadPedidosPendientes(),
+      loadProviderConfig(),
     ]);
     saveToCache();
   } catch(e) { console.warn('Firebase offline, using local mode'); }
@@ -2374,6 +2808,7 @@ async function init() {
   const fechaEl = document.getElementById('fecha-hdr');
   if (fechaEl) fechaEl.textContent = now.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
   hideLoader();
+  registerListeners();
 }
 
 async function refreshFromFirebase(silent = true) {
@@ -2392,6 +2827,7 @@ async function refreshFromFirebase(silent = true) {
       loadRecetas(),
       loadInsumoCategories(),
       loadPedidosPendientes(),
+      loadProviderConfig(),
     ]);
     saveToCache();
     const activeTab = document.querySelector('.nav-tab.active')?.dataset?.view;
@@ -2401,6 +2837,7 @@ async function refreshFromFirebase(silent = true) {
     if (activeTab === 'precios') buildPreciosGrid();
     if (activeTab === 'pedidos') { buildCards(); buildFilterBar(); }
     if (activeTab === 'pendientes') renderPendientes();
+    if (activeTab === 'ventas') { loadVentas().then(() => renderVentas()); }
   } catch(e) {}
 }
 
@@ -2414,12 +2851,14 @@ window.switchView = (view) => {
   document.getElementById('viewInsumos').style.display   = view==='insumos'   ?'block':'none';
   document.getElementById('viewPendientes').style.display= view==='pendientes'?'block':'none';
   document.getElementById('viewPagos').style.display     = view==='pagos'     ?'block':'none';
+  document.getElementById('viewVentas').style.display    = view==='ventas'    ?'block':'none';
   document.getElementById('summaryBar').style.display    = view==='pedidos'   ?''     :'none';
   if(view==='historial') renderHistorial();
   if(view==='recetas') renderRecetas();
   if(view==='insumos') renderInsumos();
   if(view==='pendientes') renderPendientes();
   if(view==='pagos') renderPagos();
+  if(view==='ventas') { buildRecetasMap(); loadVentas().then(() => renderVentas()); }
 };
 
 // FILTER BAR
@@ -2595,6 +3034,93 @@ window.filtrarPagos = (filtro) => {
   document.querySelectorAll('.pagos-filtro').forEach(b => b.classList.toggle('active', b.dataset.filtro === filtro));
   renderPagos();
 };
+
+function calcKPIs(data) {
+  let ingresos = 0, costo = 0, ganancia = 0;
+  data.forEach(v => {
+    ingresos += v.totales?.ingresos || 0;
+    costo += v.totales?.costo || 0;
+    ganancia += v.totales?.ganancia || 0;
+  });
+  const margenPct = ingresos > 0 ? (ganancia / ingresos) * 100 : 0;
+  return { ingresos, costo, ganancia, margenPct };
+}
+
+function fmt$(n) {
+  if (n === null || n === undefined || !isFinite(n)) return '—';
+  return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPct(n) {
+  if (!isFinite(n)) return '—';
+  return n.toFixed(1) + '%';
+}
+
+function ventasGetFiltered() {
+  const desde = document.getElementById('ventasDesde')?.value;
+  const hasta = document.getElementById('ventasHasta')?.value;
+  if (!desde && !hasta) return ventasData;
+  return ventasData.filter(v => {
+    const fp = v.fechaPeriodo || '';
+    if (desde && fp < desde) return false;
+    if (hasta && fp > hasta) return false;
+    return true;
+  });
+}
+
+window.ventasAplicarFiltroFechas = () => renderVentas();
+
+window.toggleImportCard = (id) => {
+  const body = document.getElementById(`vbody_${id}`);
+  if (body) body.classList.toggle('open');
+};
+
+function renderVentas() {
+  const filtered = ventasGetFiltered();
+  const kpis = calcKPIs(filtered);
+  document.getElementById('kpiIngresos').textContent = fmt$(kpis.ingresos);
+  document.getElementById('kpiCosto').textContent = fmt$(kpis.costo);
+  document.getElementById('kpiGanancia').textContent = fmt$(kpis.ganancia);
+  document.getElementById('kpiMargen').textContent = fmtPct(kpis.margenPct);
+  const list = document.getElementById('ventasImportList');
+  if (!filtered.length) {
+    list.innerHTML = `<div style="padding:40px;text-align:center;color:var(--ink3);font-size:14px"><div style="font-size:36px;margin-bottom:12px">📊</div>No hay importaciones todavía. Usá el botón para importar un Excel de Maxirest.</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(v => {
+    const t = v.totales || {};
+    const items = v.items || [];
+    const filas = items.map(it => {
+      const flagged = it.flagSinCosto ? 'ventas-item-flagged' : '';
+      return `<tr class="ventas-item-row ${flagged}">
+        <td>${it.recetaNombre || it.nombreMaxirest || '—'}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace">${it.unidades}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace">${fmt$(it.precioUnitario)}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace">${it.costoUnitario !== null ? fmt$(it.costoUnitario) : '<span style="color:var(--ink3);font-style:italic">—</span>'}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace">${it.gananciaItem !== null ? fmt$(it.gananciaItem) : '<span style="color:var(--ink3);font-style:italic">—</span>'}${it.flagSinCosto ? '<span class="ventas-flag-badge">sin costo</span>' : ''}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="ventas-import-card">
+      <div class="ventas-import-header" onclick="toggleImportCard('${v.id}')">
+        <div class="ventas-import-header-left">
+          <div class="ventas-import-periodo">${v.periodoLabel || v.fechaPeriodo || '—'}</div>
+          <div class="ventas-import-meta">Canal: ${v.canal || 'general'} · ${items.length} ítem(s)</div>
+        </div>
+        <div class="ventas-import-totals">
+          <div class="ventas-import-total-item"><div class="ventas-import-total-label">Ingresos</div><div class="ventas-import-total-value">${fmt$(t.ingresos)}</div></div>
+          <div class="ventas-import-total-item"><div class="ventas-import-total-label">Ganancia</div><div class="ventas-import-total-value">${fmt$(t.ganancia)}</div></div>
+          <div class="ventas-import-total-item"><div class="ventas-import-total-label">Margen</div><div class="ventas-import-total-value">${fmtPct(t.margenPct)}</div></div>
+        </div>
+      </div>
+      <div class="ventas-import-body" id="vbody_${v.id}">
+        <table class="ventas-item-table">
+          <thead><tr><th>Receta / Ítem</th><th style="text-align:right">Unidades</th><th style="text-align:right">Precio unit.</th><th style="text-align:right">Costo unit.</th><th style="text-align:right">Ganancia</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 window.renderPagos = () => {
   updatePagosBadge();
@@ -3178,13 +3704,24 @@ function buildPreciosGrid(){
     const header = document.createElement('div');
     header.className = 'precio-card-header';
     header.id = `pheader-${p.id}`;
+    const condPagoActual = p.condPago || 'contado';
+    const condOpts = Object.entries(COND_PAGO_LABEL).map(([v,l]) =>
+      `<option value="${v}" ${condPagoActual===v?'selected':''}>${l}</option>`
+    ).join('');
     header.innerHTML = `
       <div class="precio-card-left">
         <span class="precio-card-title">${p.name}</span>
         <span class="precio-card-meta" id="pmeta-${p.id}">${withP}/${p.products.length} con precio</span>
       </div>
-      <span class="precio-card-chevron" id="pchevron-${p.id}">▼</span>`;
+      <div style="display:flex;align-items:center;gap:8px">
+        <select class="cond-pago-sel" data-prov="${p.id}" style="font-family:'DM Mono',monospace;font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--ink2);cursor:pointer">${condOpts}</select>
+        <span class="precio-card-chevron" id="pchevron-${p.id}">▼</span>
+      </div>`;
     header.onclick = () => togglePrecioCard(p.id);
+    header.querySelector('.cond-pago-sel').addEventListener('change', e => {
+      e.stopPropagation();
+      saveCondPago(p.id, e.target.value);
+    });
     // Body (collapsed by default)
     const body = document.createElement('div');
     body.className = 'precio-card-body';
@@ -3295,7 +3832,7 @@ window.removeInsumo=async(pid, idx)=>{
   Object.assign(prices, newPrices);
 
   await saveCustomProducts(pid, p.products);
-  try { await setDoc(doc(db,'data','prices'), prices); } catch(e){}
+  try { await setDoc(doc(db,'data','prices'), prices); } catch(e){} // sanctioned whole-doc overwrite — re-key
 
   // Rebuild this card's list
   const list=document.getElementById(`plist-${pid}`);
@@ -3324,6 +3861,25 @@ async function saveCustomProducts(pid, products){
   } catch(e){ console.warn('Could not save custom products', e); }
 }
 
+async function loadProviderConfig() {
+  try {
+    const snap = await getDocs(collection(db, 'providerConfig'));
+    snap.docs.forEach(d => {
+      const p = PROVIDERS.find(x => x.id === d.id);
+      if (p && d.data().condPago) p.condPago = d.data().condPago;
+    });
+  } catch(e) { console.warn('Could not load providerConfig', e); }
+}
+
+async function saveCondPago(provId, value) {
+  const p = PROVIDERS.find(x => x.id === provId);
+  if (p) p.condPago = value; // optimistic update
+  try {
+    await setDoc(doc(db, 'providerConfig', provId), { condPago: value }, { merge: true });
+  } catch(e) { console.warn('Could not save condPago', e); }
+}
+window.saveCondPago = saveCondPago;
+
 async function loadCustomProviders(){
   try {
     const snap = await getDocs(collection(db,'customProviders'));
@@ -3347,10 +3903,12 @@ async function loadCustomProviders(){
 
 async function loadCustomProducts(){
   try {
-    for(const p of PROVIDERS){
-      const snap=await getDoc(doc(db,'customProducts', p.id));
-      if(snap.exists()) p.products=[...snap.data().products].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
-    }
+    const snap = await getDocs(collection(db, 'customProducts'));
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data().products; });
+    PROVIDERS.forEach(p => {
+      if (map[p.id]) p.products = [...map[p.id]].sort((a,b) => a.localeCompare(b,'es',{sensitivity:'base'}));
+    });
   } catch(e){ console.warn('Could not load custom products', e); }
 }
 
@@ -3395,10 +3953,10 @@ window.handlePriceChange=async(k,provName,prodName,input)=>{
   const oldPrice=prices[k]||null;
   prices[k]=newPrice;
   try {
-    await setDoc(doc(db,'data','prices'),prices);
+    await updateDoc(doc(db,'data','prices'),{[k]:newPrice});
     await addDoc(collection(db,'historial'),{
       key:k, provName, prodName, oldPrice, newPrice,
-      userEmail:'usuario', userName:'Usuario',
+      ...auditUser(),
       timestamp:serverTimestamp(),
     });
     await refreshHistorial();
@@ -3504,8 +4062,7 @@ window.closeHistModal=(e)=>{
 
 init();
 
-// Auto-refresh cada 2 minutos en background sin interrumpir lo que se está cargando
-setInterval(() => refreshFromFirebase(true), 2 * 60 * 1000);
+// Polling replaced by onSnapshot listeners (registered in init → registerListeners)
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -3514,6 +4071,8 @@ document.addEventListener('keydown', (e) => {
     if (document.getElementById('nuevoInsumoOverlay')?.classList.contains('open')) cerrarModalNuevoInsumo();
     if (document.getElementById('editInsumoOverlay')?.classList.contains('open')) cerrarEditInsumo();
     if (document.getElementById('statsModalOverlay')?.classList.contains('open')) cerrarStatsModal();
+    if (document.getElementById('ventasPreviewOverlay')?.classList.contains('open')) { document.getElementById('ventasPreviewOverlay').classList.remove('open'); document.getElementById('ventasFileInput').value=''; }
+    if (document.getElementById('mappingModalOverlay')?.classList.contains('open')) document.getElementById('mappingModalOverlay').classList.remove('open');
   }
 });
 </script>
