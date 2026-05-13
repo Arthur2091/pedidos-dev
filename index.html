@@ -454,6 +454,8 @@
   .ventas-import-periodo { font-size: 14px; font-weight: 600; }
   .ventas-import-meta { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
   .ventas-import-totals { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .btn-del-importacion { background: none; border: none; cursor: pointer; color: var(--ink3); font-size: 16px; padding: 4px 6px; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; }
+  .btn-del-importacion:hover { color: #B91C1C; background: #FEE2E2; }
   .ventas-import-total-item { text-align: right; }
   .ventas-import-total-label { font-size: 10px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.4px; }
   .ventas-import-total-value { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--accent); }
@@ -1065,7 +1067,7 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, query, where, orderBy, getDocs, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, orderBy, getDocs, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -3121,6 +3123,14 @@ function ventasGetFiltered() {
 
 window.ventasAplicarFiltroFechas = () => renderVentas();
 
+window.eliminarImportacion = async (id) => {
+  if (!confirm('¿Eliminás esta importación?')) return;
+  await deleteDoc(doc(db, 'ventas', id));
+  ventasData = ventasData.filter(v => v.id !== id);
+  renderVentas();
+  showToast('Importación eliminada');
+};
+
 window.toggleImportCard = (id) => {
   const body = document.getElementById(`vbody_${id}`);
   if (body) body.classList.toggle('open');
@@ -3162,6 +3172,7 @@ function renderVentas() {
           <div class="ventas-import-total-item"><div class="ventas-import-total-label">Ingresos</div><div class="ventas-import-total-value">${fmt$(t.ingresos)}</div></div>
           <div class="ventas-import-total-item"><div class="ventas-import-total-label">Ganancia</div><div class="ventas-import-total-value">${fmt$(t.ganancia)}</div></div>
           <div class="ventas-import-total-item"><div class="ventas-import-total-label">Margen</div><div class="ventas-import-total-value">${fmtPct(t.margenPct)}</div></div>
+          <button class="btn-del-importacion" onclick="event.stopPropagation();eliminarImportacion('${v.id}')" title="Eliminar importación">🗑</button>
         </div>
       </div>
       <div class="ventas-import-body" id="vbody_${v.id}">
