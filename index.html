@@ -474,6 +474,30 @@
   .mapping-row select { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; cursor: pointer; flex: 1; min-width: 180px; }
   .mapping-row select:focus { border-color: var(--accent); }
 
+  /* ANALYTICS */
+  .ventas-tabs { display: flex; gap: 4px; padding: 12px 16px 0; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .ventas-tab { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 16px; border-radius: 8px 8px 0 0; border: 1.5px solid transparent; background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
+  .ventas-tab:hover { color: var(--ink); background: var(--surface2); }
+  .ventas-tab.active { background: var(--bg); color: var(--ink); border-color: var(--border); border-bottom-color: var(--bg); }
+  .analytics-container { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+  .analytics-section-title { font-size: 13px; font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .analytics-kpi-rubros { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .rubro-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s; }
+  .rubro-card:hover { box-shadow: var(--shadow); }
+  .rubro-card-bar { height: 4px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .rubro-card-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
+  .analytics-rankings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .ranking-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .ranking-item { display: flex; flex-direction: column; }
+  .ranking-bar { height: 6px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin: 2px 0; }
+  .ranking-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .heatmap-cell { padding: 6px 10px; text-align: right; font-family: 'DM Mono', monospace; }
+  .heatmap-empty { padding: 24px; text-align: center; color: var(--ink3); font-size: 13px; font-style: italic; }
+  .detalle-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; }
+  .detalle-row { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .detalle-row:last-child { border-bottom: none; }
+
   @media (max-width: 600px) {
     main, .precios-grid { grid-template-columns: 1fr; padding: 12px 10px; }
     .nav-tab span { display: none; }
@@ -975,6 +999,10 @@
     <div class="ventas-kpi-item"><span class="ventas-kpi-label">Ganancia real</span><span class="ventas-kpi-value" id="kpiGanancia">—</span></div>
     <div class="ventas-kpi-item"><span class="ventas-kpi-label">Margen</span><span class="ventas-kpi-value" id="kpiMargen">—</span></div>
   </div>
+  <div class="ventas-tabs">
+    <button class="ventas-tab active" data-tab="importaciones" onclick="setVentasTab('importaciones')">Importaciones</button>
+    <button class="ventas-tab" data-tab="rubros" onclick="setVentasTab('rubros')">Por Rubro</button>
+  </div>
   <div style="padding:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <button class="btn-nueva-receta" onclick="abrirImportarExcel()">📥 Importar Excel Maxirest</button>
     <label style="font-size:13px;color:var(--ink2);font-weight:500">Desde</label>
@@ -1291,6 +1319,29 @@ let editingRecetaId = null;
 
 let ventasData = [];
 let mapaMaxirestCache = {};
+
+const RUBROS_CANON = {
+  'pastas': 'Pastas',
+  'desayunos y meriendas': 'Desayunos y Meriendas',
+  'cafeteria': 'Cafetería', 'cafetería': 'Cafetería',
+  'sandwich': 'Sandwich', 'sandwiches': 'Sandwich',
+  'wraps': 'Wraps',
+  'ensaladas': 'Ensaladas',
+  'jugos y licuados': 'Jugos y Licuados',
+  'pasteleria': 'Pastelería', 'pastelería': 'Pastelería',
+  'menu del dia': 'Menú del Día', 'menú del día': 'Menú del Día'
+};
+function normalizeRubro(r) {
+  const v = String(r || '').toLowerCase().trim();
+  return RUBROS_CANON[v] || String(r || '').trim();
+}
+
+let activeVentasTab = 'importaciones';
+window.setVentasTab = (tab) => {
+  activeVentasTab = tab;
+  document.querySelectorAll('.ventas-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  renderVentas();
+};
 let recetasMap = {};
 let _pendingImport = null;
 
@@ -1966,7 +2017,7 @@ window.confirmarImportacion = async () => {
     return {
       codigoMaxirest: String(row['CODIGO']).trim(),
       nombreMaxirest: String(row['NOMBRE']).trim(),
-      rubro: String(row['RUBRO'] || '').trim(),
+      rubro: normalizeRubro(row['RUBRO']),
       recetaId,
       recetaNombre: row.recetaNombre || '',
       unidades,
@@ -3053,7 +3104,7 @@ function fmt$(n) {
 
 function fmtPct(n) {
   if (!isFinite(n)) return '—';
-  return n.toFixed(1) + '%';
+  return n.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
 }
 
 function ventasGetFiltered() {
@@ -3077,6 +3128,7 @@ window.toggleImportCard = (id) => {
 
 function renderVentas() {
   const filtered = ventasGetFiltered();
+  if (activeVentasTab === 'rubros') { renderAnalyticsRubros(filtered); return; }
   const kpis = calcKPIs(filtered);
   document.getElementById('kpiIngresos').textContent = fmt$(kpis.ingresos);
   document.getElementById('kpiCosto').textContent = fmt$(kpis.costo);
@@ -3121,6 +3173,156 @@ function renderVentas() {
     </div>`;
   }).join('');
 }
+
+function calcRubroStats(data) {
+  const map = {};
+  (data || []).forEach(v => (v.items || []).forEach(it => {
+    const r = normalizeRubro(it.rubro) || 'Sin rubro';
+    if (!map[r]) map[r] = { rubro: r, ingresos: 0, costo: 0, ganancia: 0, unidades: 0, productos: {} };
+    const ven = it.ventaTotal||0, cos = it.costoTotal||0, gan = it.gananciaItem||0, un = it.unidades||0;
+    map[r].ingresos += ven; map[r].costo += cos; map[r].ganancia += gan; map[r].unidades += un;
+    const key = it.recetaNombre || it.nombreMaxirest || it.codigoMaxirest || '—';
+    if (!map[r].productos[key]) map[r].productos[key] = { nombre: key, unidades: 0, ingresos: 0, costo: 0, ganancia: 0 };
+    const p = map[r].productos[key];
+    p.unidades += un; p.ingresos += ven; p.costo += cos; p.ganancia += gan;
+  }));
+  return Object.values(map).map(r => ({
+    ...r,
+    margenPct: r.ingresos > 0 ? (r.ganancia / r.ingresos) * 100 : 0,
+    productos: Object.values(r.productos).map(p => ({ ...p, margenPct: p.ingresos > 0 ? (p.ganancia / p.ingresos) * 100 : 0 }))
+  }));
+}
+
+function calcRubroComparativa(data, n = 6) {
+  const byPeriodo = {};
+  (data || []).forEach(v => {
+    const key = v.periodoLabel || v.fechaPeriodo || '—';
+    const fecha = v.fechaPeriodo || '';
+    if (!byPeriodo[key]) byPeriodo[key] = { label: key, fecha, rubros: {} };
+    (v.items || []).forEach(it => {
+      const r = normalizeRubro(it.rubro) || 'Sin rubro';
+      if (!byPeriodo[key].rubros[r]) byPeriodo[key].rubros[r] = { ingresos: 0, ganancia: 0 };
+      byPeriodo[key].rubros[r].ingresos += it.ventaTotal || 0;
+      byPeriodo[key].rubros[r].ganancia += it.gananciaItem || 0;
+    });
+  });
+  const sorted = Object.values(byPeriodo).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const periodoObjs = sorted.slice(0, n).reverse();
+  const periodos = periodoObjs.map(p => p.label);
+  const rubroSet = new Set();
+  periodoObjs.forEach(p => Object.keys(p.rubros).forEach(r => rubroSet.add(r)));
+  let maxVal = 0;
+  const rows = Array.from(rubroSet).map(rubro => {
+    const byPeriod = {};
+    periodoObjs.forEach(p => {
+      const val = p.rubros[rubro]?.ingresos || 0;
+      byPeriod[p.label] = val;
+      if (val > maxVal) maxVal = val;
+    });
+    return { rubro, byPeriod };
+  });
+  return { periodos, rows, maxVal };
+}
+
+function renderAnalyticsRubros(filtered) {
+  const kpis = calcKPIs(filtered);
+  document.getElementById('kpiIngresos').textContent = fmt$(kpis.ingresos);
+  document.getElementById('kpiCosto').textContent = fmt$(kpis.costo);
+  document.getElementById('kpiGanancia').textContent = fmt$(kpis.ganancia);
+  document.getElementById('kpiMargen').textContent = fmtPct(kpis.margenPct);
+  const list = document.getElementById('ventasImportList');
+  if (!filtered.length) {
+    list.innerHTML = `<div style="padding:40px;text-align:center;color:var(--ink3);font-size:14px"><div style="font-size:36px;margin-bottom:12px">📊</div>No hay importaciones todavía.</div>`;
+    return;
+  }
+  const stats = calcRubroStats(filtered);
+  const maxIngresos = Math.max(...stats.map(r => r.ingresos), 1);
+  const maxGanancia = Math.max(...stats.map(r => r.ganancia), 1);
+  const maxUnidades = Math.max(...stats.map(r => r.unidades), 1);
+
+  const rubroCards = stats.map(r => {
+    const slug = r.rubro.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const barPct = Math.round((r.ingresos / maxIngresos) * 100);
+    return `<div class="rubro-card" onclick="toggleRubroDetalle('${slug}')">
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">${r.rubro}</div>
+      <div style="font-size:11px;color:var(--ink2);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+        <span>Ingresos: <b style="color:var(--ink)">${fmt$(r.ingresos)}</b></span>
+        <span>Ganancia: <b style="color:var(--accent)">${fmt$(r.ganancia)}</b></span>
+        <span>Margen: <b style="color:var(--accent)">${fmtPct(r.margenPct)}</b></span>
+        <span>Unidades: <b style="color:var(--ink)">${r.unidades}</b></span>
+      </div>
+      <div class="rubro-card-bar"><div class="rubro-card-bar-fill" style="width:${barPct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  const byGanancia = [...stats].sort((a, b) => b.ganancia - a.ganancia);
+  const byMargen = [...stats].sort((a, b) => b.margenPct - a.margenPct);
+  const byUnidades = [...stats].sort((a, b) => b.unidades - a.unidades);
+  const maxG = Math.max(...byGanancia.map(r => r.ganancia), 1);
+  const maxM = Math.max(...byMargen.map(r => r.margenPct), 1);
+  const maxU = Math.max(...byUnidades.map(r => r.unidades), 1);
+
+  const rankCol = (items, valFn, fmtFn) => items.map(r =>
+    `<div class="ranking-item">
+      <div style="font-size:12px;font-weight:500;margin-bottom:4px">${r.rubro}</div>
+      <div class="ranking-bar"><div class="ranking-bar-fill" style="width:${Math.round((valFn(r)/Math.max(...items.map(valFn),1))*100)}%"></div></div>
+      <div style="font-size:11px;color:var(--ink2);margin-top:2px">${fmtFn(r)}</div>
+    </div>`).join('');
+
+  const { periodos, rows, maxVal } = calcRubroComparativa(filtered);
+  let comparativaHtml = '';
+  if (periodos.length < 2) {
+    comparativaHtml = `<div class="heatmap-empty">Se necesitan al menos 2 períodos para mostrar la comparativa.</div>`;
+  } else {
+    const thead = `<tr><th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--ink2);background:var(--surface2)">Rubro</th>${periodos.map(p => `<th style="text-align:right;padding:6px 10px;font-size:11px;color:var(--ink2);background:var(--surface2)">${p}</th>`).join('')}</tr>`;
+    const tbody = rows.map(row => {
+      const cells = periodos.map(p => {
+        const val = row.byPeriod[p] || 0;
+        const pct = maxVal > 0 ? val / maxVal : 0;
+        const bg = `background:hsl(152,55%,${Math.round(95 - pct * 40)}%)`;
+        return `<td class="heatmap-cell" style="${bg}">${fmt$(val)}</td>`;
+      }).join('');
+      return `<tr><td style="padding:6px 10px;font-size:12px;font-weight:500">${row.rubro}</td>${cells}</tr>`;
+    }).join('');
+    comparativaHtml = `<div style="overflow-x:auto"><table class="heatmap-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  }
+
+  const detalles = stats.map(r => {
+    const slug = r.rubro.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const prods = [...r.productos].sort((a, b) => b.ganancia - a.ganancia);
+    const rows = prods.map(p => `<div class="detalle-row">
+      <span style="flex:1;font-size:12px">${p.nombre}</span>
+      <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ink2);min-width:60px;text-align:right">${p.unidades} u</span>
+      <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ink);min-width:80px;text-align:right">${fmt$(p.ingresos)}</span>
+      <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);min-width:80px;text-align:right">${fmt$(p.ganancia)}</span>
+      <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ink2);min-width:56px;text-align:right">${fmtPct(p.margenPct)}</span>
+    </div>`).join('');
+    return `<div class="detalle-panel" id="detalle_${slug}" style="display:none">
+      <div style="font-size:13px;font-weight:600;padding:10px 0 8px">${r.rubro} — detalle por producto</div>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  list.innerHTML = `<div class="analytics-container">
+    <div class="analytics-section-title">Resumen por rubro</div>
+    <div class="analytics-kpi-rubros">${rubroCards}</div>
+    <div class="analytics-section-title">Rankings</div>
+    <div class="analytics-rankings">
+      <div class="ranking-col"><div style="font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px">Por ganancia</div>${rankCol(byGanancia, r => r.ganancia, r => fmt$(r.ganancia))}</div>
+      <div class="ranking-col"><div style="font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px">Por margen %</div>${rankCol(byMargen, r => r.margenPct, r => fmtPct(r.margenPct))}</div>
+      <div class="ranking-col"><div style="font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:10px">Por unidades</div>${rankCol(byUnidades, r => r.unidades, r => r.unidades + ' u')}</div>
+    </div>
+    <div class="analytics-section-title">Comparativa de períodos</div>
+    ${comparativaHtml}
+    <div class="analytics-section-title">Detalle por rubro</div>
+    ${detalles}
+  </div>`;
+}
+
+window.toggleRubroDetalle = (slug) => {
+  const el = document.getElementById('detalle_' + slug);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+};
 
 window.renderPagos = () => {
   updatePagosBadge();
@@ -4019,7 +4221,7 @@ window.renderHistorial=()=>{
   body.innerHTML=rows.map(h=>{
     const ts=h.timestamp?.seconds?new Date(h.timestamp.seconds*1000):new Date();
     const diff=h.oldPrice?(h.newPrice-h.oldPrice)/h.oldPrice*100:null;
-    const diffStr=diff!==null?(diff>0?`▲${diff.toFixed(1)}%`:`▼${Math.abs(diff).toFixed(1)}%`):'Nuevo';
+    const diffStr=diff!==null?(diff>0?`▲${diff.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})}%`:`▼${Math.abs(diff).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})}%`):'Nuevo';
     const diffCls=diff===null?'':diff>0?'hist-price-up':'hist-price-down';
     return`<div class="hist-row">
       <span>${h.prodName}</span>
