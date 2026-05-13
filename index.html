@@ -470,9 +470,15 @@
   .ventas-item-flagged td:first-child::before { content: '⚠ '; font-size: 10px; }
   .ventas-flag-badge { display: inline-block; font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: #FEF3C7; color: #92400E; margin-left: 4px; }
   .mapping-modal { max-width: 700px !important; }
-  .mapping-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 50vh; overflow-y: auto; }
-  .mapping-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface2); border-radius: 8px; flex-wrap: wrap; }
+  .mapping-search { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); outline: none; box-sizing: border-box; margin-bottom: 10px; }
+  .mapping-search:focus { border-color: var(--accent); }
+  .mapping-list { display: flex; flex-direction: column; gap: 6px; max-height: 55vh; overflow-y: auto; }
+  .mapping-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: 8px; flex-wrap: wrap; border: 1.5px solid transparent; transition: border-color 0.15s; }
+  .mapping-row.sin-receta { border-color: #FCD34D; }
   .mapping-row-name { flex: 1; font-size: 13px; font-weight: 500; min-width: 140px; }
+  .mapping-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+  .mapping-badge.mapeado { background: #D1FAE5; color: #065F46; }
+  .mapping-badge.sin-receta { background: #FEF3C7; color: #92400E; }
   .mapping-row select { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; cursor: pointer; flex: 1; min-width: 180px; }
   .mapping-row select:focus { border-color: var(--accent); }
 
@@ -1030,8 +1036,12 @@
         <input class="rec-field-input" id="ventasPeriodoLabel" type="text" placeholder="Mayo 2026">
       </div>
       <div>
-        <div class="rec-field-label">Fecha del período</div>
-        <input class="rec-field-input" id="ventasFechaPeriodo" type="date">
+        <div class="rec-field-label">Rango de fechas</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="rec-field-input" id="ventasFechaInicio" type="date" style="flex:1">
+          <span style="font-size:12px;color:var(--ink3);flex-shrink:0">hasta</span>
+          <input class="rec-field-input" id="ventasFechaFin" type="date" style="flex:1">
+        </div>
       </div>
       <div>
         <div class="rec-field-label">Canal (opcional)</div>
@@ -1050,11 +1060,13 @@
 <div class="rec-modal-overlay" id="mappingModalOverlay">
   <div class="rec-modal mapping-modal">
     <div class="rec-modal-header">
-      <span class="rec-modal-title">Mapear ítems sin receta</span>
+      <span class="rec-modal-title">Asignar recetas a productos</span>
       <button class="modal-close" onclick="document.getElementById('mappingModalOverlay').classList.remove('open')">×</button>
     </div>
     <div class="rec-modal-body">
-      <p style="font-size:13px;color:var(--ink2);margin-bottom:8px">Asigná una receta a cada ítem no reconocido. El mapeo se guarda para futuras importaciones.</p>
+      <p style="font-size:13px;color:var(--ink2);margin-bottom:10px">Revisá y asigná la receta de cada producto. El mapeo se guarda para futuras importaciones.</p>
+      <input class="mapping-search" id="mappingSearch" type="text" placeholder="Buscar producto..." oninput="filtrarMappingList(this.value)">
+      <div id="mappingCounter" style="font-size:11px;color:var(--ink3);margin-bottom:8px"></div>
       <div class="mapping-list" id="mappingList"></div>
     </div>
     <div class="rec-modal-footer">
@@ -1899,7 +1911,8 @@ function renderImportPreview(validRows, discardedRows) {
     discEl.style.display = 'none';
   }
   const today = new Date().toISOString().slice(0,10);
-  document.getElementById('ventasFechaPeriodo').value = today;
+  document.getElementById('ventasFechaInicio').value = today;
+  document.getElementById('ventasFechaFin').value = today;
   document.getElementById('ventasPeriodoLabel').value = '';
   document.getElementById('ventasCanal').value = '';
   document.getElementById('ventasPreviewOverlay').classList.add('open');
@@ -1907,12 +1920,15 @@ function renderImportPreview(validRows, discardedRows) {
 
 window.ventasPreviewContinuar = async () => {
   const periodoLabel = document.getElementById('ventasPeriodoLabel').value.trim();
-  const fechaPeriodo = document.getElementById('ventasFechaPeriodo').value;
+  const fechaInicio = document.getElementById('ventasFechaInicio').value;
+  const fechaFin = document.getElementById('ventasFechaFin').value;
   const canal = document.getElementById('ventasCanal').value.trim() || 'general';
   if (!periodoLabel) { showToast('⚠ Ingresá el período'); return; }
-  if (!fechaPeriodo) { showToast('⚠ Ingresá la fecha del período'); return; }
+  if (!fechaInicio || !fechaFin) { showToast('⚠ Ingresá las fechas del período'); return; }
+  if (fechaFin < fechaInicio) { showToast('⚠ La fecha fin debe ser igual o posterior al inicio'); return; }
   _pendingImport.periodoLabel = periodoLabel;
-  _pendingImport.fechaPeriodo = fechaPeriodo;
+  _pendingImport.fechaInicio = fechaInicio;
+  _pendingImport.fechaFin = fechaFin;
   _pendingImport.canal = canal;
   document.getElementById('ventasPreviewOverlay').classList.remove('open');
   await resolveMapping(_pendingImport.validRows);
@@ -1922,44 +1938,75 @@ async function resolveMapping(rows) {
   await loadMapaMaxirest();
   const recNormMap = {};
   Object.values(recetasMap).forEach(r => { recNormMap[normalizeName(r.nombre)] = r; });
-  const matched = [];
-  const unmatched = [];
-  rows.forEach(row => {
+  const allRows = rows.map(row => {
     const codigo = String(row['CODIGO']).trim();
     const nombre = String(row['NOMBRE']).trim();
+    let preRecetaId = null;
+    let isMapped = false;
     if (mapaMaxirestCache[codigo]) {
-      const m = mapaMaxirestCache[codigo];
-      matched.push({ ...row, recetaId: m.recetaId || null, recetaNombre: m.recetaId ? (recetasMap[m.recetaId]?.nombre || '') : '' });
+      preRecetaId = mapaMaxirestCache[codigo].recetaId || null;
+      isMapped = true;
     } else {
-      const autoMatch = recNormMap[normalizeName(nombre)];
-      if (autoMatch) {
-        matched.push({ ...row, recetaId: autoMatch.id, recetaNombre: autoMatch.nombre, _autoMatched: true, _codigo: codigo, _nombreMaxirest: nombre });
-      } else {
-        unmatched.push({ ...row, _codigo: codigo, _nombreMaxirest: nombre });
-      }
+      const auto = recNormMap[normalizeName(nombre)];
+      if (auto) { preRecetaId = auto.id; isMapped = true; }
     }
+    return { ...row, _codigo: codigo, _nombreMaxirest: nombre, _preRecetaId: preRecetaId, _isMapped: isMapped };
   });
-  _pendingImport.matched = matched;
-  _pendingImport.unmatched = unmatched;
-  if (unmatched.length) {
-    renderMappingModal(unmatched);
-  } else {
-    await confirmarImportacion();
-  }
+  _pendingImport.allRows = allRows;
+  renderMappingModal(allRows);
 }
 
-function renderMappingModal(unmatched) {
+function renderMappingModal(allRows) {
+  const sinReceta = allRows.filter(r => !r._isMapped || !r._preRecetaId);
+  const conReceta = allRows.filter(r => r._isMapped && r._preRecetaId);
+  const sorted = [...sinReceta, ...conReceta];
+  _pendingImport._sortedRows = sorted;
+  const recOpts = Object.values(recetasMap)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+    .map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
   const list = document.getElementById('mappingList');
-  list.innerHTML = unmatched.map((row, i) => {
-    const opts = `<option value="">— Sin receta (importar igual) —</option>` +
-      Object.values(recetasMap).map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
-    return `<div class="mapping-row">
+  list.innerHTML = sorted.map((row, i) => {
+    const esMapeado = row._isMapped && row._preRecetaId;
+    const badge = esMapeado
+      ? `<span class="mapping-badge mapeado">Mapeado</span>`
+      : `<span class="mapping-badge sin-receta">Sin receta</span>`;
+    const opts = `<option value="">— Sin receta —</option>` + recOpts.replace(
+      `value="${row._preRecetaId}"`,
+      `value="${row._preRecetaId}" selected`
+    );
+    return `<div class="mapping-row${esMapeado ? '' : ' sin-receta'}" data-nombre="${row['NOMBRE'].toLowerCase()}" data-codigo="${row['CODIGO'].toLowerCase()}">
       <div class="mapping-row-name">${row['NOMBRE']} <small style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3)">${row['CODIGO']}</small></div>
-      <select id="mapSel_${i}" title="Receta para ${row['NOMBRE']}">${opts}</select>
+      ${badge}
+      <select id="mapSel_${i}" onchange="actualizarBadgeMapping(this, ${i})">${opts}</select>
     </div>`;
   }).join('');
+  const counter = document.getElementById('mappingCounter');
+  counter.textContent = `${sinReceta.length} sin receta · ${conReceta.length} ya mapeados`;
+  document.getElementById('mappingSearch').value = '';
   document.getElementById('mappingModalOverlay').classList.add('open');
 }
+
+window.filtrarMappingList = (q) => {
+  const t = q.toLowerCase();
+  document.querySelectorAll('#mappingList .mapping-row').forEach(el => {
+    const match = !t || el.dataset.nombre.includes(t) || el.dataset.codigo.includes(t);
+    el.style.display = match ? '' : 'none';
+  });
+};
+
+window.actualizarBadgeMapping = (sel, i) => {
+  const row = sel.closest('.mapping-row');
+  const badge = row.querySelector('.mapping-badge');
+  if (sel.value) {
+    badge.className = 'mapping-badge mapeado';
+    badge.textContent = 'Mapeado';
+    row.classList.remove('sin-receta');
+  } else {
+    badge.className = 'mapping-badge sin-receta';
+    badge.textContent = 'Sin receta';
+    row.classList.add('sin-receta');
+  }
+};
 
 async function persistMappings(resolvedPairs) {
   const ops = resolvedPairs.map(({ codigo, nombreMaxirest, recetaId }) =>
@@ -1976,27 +2023,24 @@ async function persistMappings(resolvedPairs) {
 }
 
 window.confirmarMapeoYContinuar = async () => {
-  const { unmatched } = _pendingImport;
-  const resolvedPairs = unmatched.map((row, i) => ({
+  const { _sortedRows } = _pendingImport;
+  const resolvedPairs = _sortedRows.map((row, i) => ({
     codigo: row._codigo,
     nombreMaxirest: row._nombreMaxirest,
-    recetaId: document.getElementById(`mapSel_${i}`).value || null
+    recetaId: document.getElementById(`mapSel_${i}`)?.value || null
   }));
   await persistMappings(resolvedPairs);
-  resolvedPairs.forEach((pair, i) => {
-    const row = unmatched[i];
-    _pendingImport.matched.push({
-      ...row,
-      recetaId: pair.recetaId,
-      recetaNombre: pair.recetaId ? (recetasMap[pair.recetaId]?.nombre || '') : ''
-    });
-  });
+  _pendingImport.matched = resolvedPairs.map((pair, i) => ({
+    ..._sortedRows[i],
+    recetaId: pair.recetaId,
+    recetaNombre: pair.recetaId ? (recetasMap[pair.recetaId]?.nombre || '') : ''
+  }));
   document.getElementById('mappingModalOverlay').classList.remove('open');
   await confirmarImportacion();
 };
 
 window.confirmarImportacion = async () => {
-  const { matched, periodoLabel, fechaPeriodo, canal } = _pendingImport;
+  const { matched, periodoLabel, fechaInicio, fechaFin, canal } = _pendingImport;
   const existing = ventasData.filter(v => v.periodoLabel === periodoLabel);
   if (existing.length) {
     const ok = confirm(`Ya hay ${existing.length} importación(es) para el período "${periodoLabel}". ¿Continuar de todas formas?`);
@@ -2041,7 +2085,9 @@ window.confirmarImportacion = async () => {
   try {
     await addDoc(collection(db,'ventas'), {
       periodoLabel,
-      fechaPeriodo,
+      fechaInicio,
+      fechaFin,
+      fechaPeriodo: fechaInicio,
       canal,
       importadoPor: currentUser.email,
       importadoEn: serverTimestamp(),
@@ -3109,6 +3155,11 @@ function fmtPct(n) {
   return n.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
 }
 
+function fmtRangoFecha(inicio, fin) {
+  const fmt = d => { const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; };
+  return inicio === fin ? fmt(inicio) : `${fmt(inicio)} – ${fmt(fin)}`;
+}
+
 function ventasGetFiltered() {
   const desde = document.getElementById('ventasDesde')?.value;
   const hasta = document.getElementById('ventasHasta')?.value;
@@ -3166,7 +3217,7 @@ function renderVentas() {
       <div class="ventas-import-header" onclick="toggleImportCard('${v.id}')">
         <div class="ventas-import-header-left">
           <div class="ventas-import-periodo">${v.periodoLabel || v.fechaPeriodo || '—'}</div>
-          <div class="ventas-import-meta">Canal: ${v.canal || 'general'} · ${items.length} ítem(s)</div>
+          <div class="ventas-import-meta">${v.fechaInicio && v.fechaFin ? fmtRangoFecha(v.fechaInicio, v.fechaFin) + ' · ' : ''}Canal: ${v.canal || 'general'} · ${items.length} ítem(s)</div>
         </div>
         <div class="ventas-import-totals">
           <div class="ventas-import-total-item"><div class="ventas-import-total-label">Ingresos</div><div class="ventas-import-total-value">${fmt$(t.ingresos)}</div></div>
