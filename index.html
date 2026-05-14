@@ -18,6 +18,11 @@
   }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; padding-bottom: 120px; }
 
+  /* IMPORT PROGRESS */
+  #importProgress { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; pointer-events: none; }
+  #importProgressBar { height: 3px; background: var(--accent); width: 0; transition: width 0.3s ease; }
+  #importProgressLabel { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 14px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+
   /* HEADER */
   header { background: var(--ink); color: #fff; padding: 14px 24px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
@@ -39,12 +44,20 @@
   main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
   .provider-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
   .provider-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.06); }
-  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid var(--border); }
-  .card-header-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .card-header { padding: 12px 16px; border-bottom: 1px solid transparent; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .card-header:hover { background: var(--surface2); }
+  .card-header.open { border-bottom-color: var(--border); }
+  .card-cat-badge { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .card-header-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .card-header-top { display: flex; align-items: center; gap: 8px; }
   .card-title { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
   .card-count { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink3); background: var(--surface2); padding: 3px 8px; border-radius: 999px; flex-shrink: 0; transition: all 0.2s; }
   .card-count.has-items { background: var(--accent-light); color: var(--accent); font-weight: 500; }
   .card-contact { display: flex; flex-wrap: wrap; gap: 5px; }
+  .card-toggle { font-size: 10px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
+  .card-toggle.open { transform: rotate(90deg); }
+  .card-body { display: none; flex-direction: column; }
+  .card-body.open { display: flex; }
   .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 6px; text-decoration: none; transition: background 0.15s; }
   .chip-tel { background: var(--surface2); color: var(--ink2); }
   a.chip-tel:hover { background: var(--accent-light); color: var(--accent); }
@@ -111,16 +124,16 @@
   .btn-nprov-save:hover { background: #235c42; }
   .btn-nprov-cancel { font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 11px 18px; border-radius: 10px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; }
   .precios-grid { max-width: 1200px; margin: 0 auto; padding: 8px 16px 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-  .precio-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; transition: box-shadow 0.2s; }
+  .precio-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); border-top-width: 3px; overflow: hidden; transition: box-shadow 0.2s; }
   .precio-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
-  .precio-card-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; transition: background 0.15s; gap: 10px; }
+  .precio-card-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; transition: background 0.15s; border-bottom: 1px solid transparent; }
   .precio-card-header:hover { background: var(--surface2); }
-  .precio-card-header.open { border-bottom: 1px solid var(--border); }
+  .precio-card-header.open { border-bottom-color: var(--border); }
+  .precio-card-chevron { font-size: 10px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
+  .precio-card-chevron.open { transform: rotate(90deg); }
   .precio-card-left { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
   .precio-card-title { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .precio-card-meta { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
-  .precio-card-chevron { font-size: 11px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; }
-  .precio-card-chevron.open { transform: rotate(180deg); }
   .precio-card-body { display: none; }
   .precio-card-body.open { display: block; }
   .precio-row { display: flex; flex-direction: column; padding: 10px 18px; border-bottom: 1px solid var(--border); transition: background 0.1s; gap: 5px; }
@@ -210,9 +223,17 @@
   .pagos-filtros { display: flex; gap: 6px; flex-wrap: wrap; }
   .pagos-filtro { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
   .pagos-filtro.active { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .pagos-prov-block { margin-bottom: 20px; }
-  .pagos-prov-header { font-size: 13px; font-weight: 700; color: var(--ink); padding: 8px 14px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .pagos-prov-block { margin-bottom: 16px; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .pagos-prov-header { font-size: 13px; font-weight: 700; color: var(--ink); padding: 10px 14px; background: var(--surface2); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid transparent; transition: background 0.15s; }
+  .pagos-prov-header.open { border-bottom-color: var(--border); }
+  .pagos-prov-header:hover { filter: brightness(0.97); }
+  .pagos-prov-badge { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .pagos-prov-info { flex: 1; min-width: 0; }
   .pagos-prov-stats { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink3); font-weight: 400; }
+  .pagos-prov-body { padding: 8px; display: none; }
+  .pagos-prov-body.open { display: block; }
+  .hist-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+  .hist-btn:hover, .hist-btn.active { background: rgba(255,255,255,0.15); color: #fff; }
   .pago-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px; overflow: hidden; }
   .pago-card.vencido { border-color: #FCA5A5; }
   .pago-card.vence-hoy { border-color: #FCD34D; }
@@ -249,17 +270,35 @@
   .pend-title { font-size: 18px; font-weight: 600; }
   .pend-sub { font-size: 13px; color: var(--ink2); margin-top: 2px; }
   .pend-list { display: flex; flex-direction: column; gap: 12px; }
+  .pend-total-bar { background: var(--ink); color: #fff; border-radius: var(--radius); padding: 14px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .pend-total-label { font-size: 13px; color: rgba(255,255,255,0.6); }
+  .pend-total-value { font-size: 22px; font-weight: 700; font-family: 'DM Mono', monospace; letter-spacing: -0.5px; }
+  .pend-total-meta { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
   .pend-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; transition: opacity 0.2s; }
   .pend-card.recibido { opacity: 0.55; }
-  .pend-card-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+  .pend-card-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; transition: background 0.15s; border-bottom: 1px solid transparent; }
+  .pend-card-header:hover { background: var(--surface2); }
+  .pend-card-header.open { border-bottom-color: var(--border); }
+  .pend-card-toggle { font-size: 10px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; }
+  .pend-card-toggle.open { transform: rotate(90deg); }
   .pend-card-dot { width: 10px; height: 10px; border-radius: 50%; background: #F59E0B; flex-shrink: 0; }
   .pend-card-dot.recibido { background: var(--accent); }
-  .pend-card-info { flex: 1; }
+  .pend-card-info { flex: 1; min-width: 0; }
   .pend-card-prov { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
   .pend-card-fecha { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; margin-top: 2px; }
   .pend-card-status.pendiente { background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
   .pend-card-status.recibido { background: #D1FAE5; color: #065F46; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
-  .pend-card-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .pend-dias-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+  .pend-dias-badge.vencido  { background: #FEE2E2; color: #B91C1C; }
+  .pend-dias-badge.hoy      { background: #FEF3C7; color: #92400E; }
+  .pend-dias-badge.urgente  { background: #FEF9C3; color: #854D0E; }
+  .pend-dias-badge.ok       { background: #D1FAE5; color: #065F46; }
+  .pend-dias-badge.sin-fecha{ background: var(--surface2); color: var(--ink3); }
+  .pend-monto-inp { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; width: 110px; padding: 4px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--bg); color: var(--accent); outline: none; text-align: right; -moz-appearance: textfield; transition: border-color 0.15s; flex-shrink: 0; }
+  .pend-monto-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .pend-monto-inp:focus { border-color: var(--accent); background: #fff; }
+  .pend-card-body { display: none; padding: 12px 16px; flex-direction: column; gap: 12px; }
+  .pend-card-body.open { display: flex; }
   .pend-items { display: flex; flex-direction: column; gap: 3px; }
   .pend-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px solid var(--border); }
   .pend-item:last-child { border-bottom: none; }
@@ -298,12 +337,18 @@
   .ins-search { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); outline: none; width: 220px; transition: border-color 0.15s; }
   .ins-search:focus { border-color: var(--accent); }
   .ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-  .ins-cat-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-  .ins-cat-header { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .ins-cat-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .ins-cat-icon { font-size: 16px; }
-  .ins-cat-count { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink3); background: var(--surface2); padding: 2px 8px; border-radius: 999px; }
-  .ins-list { padding: 6px 0; max-height: 280px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .ins-cat-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); border-top-width: 3px; box-shadow: var(--shadow); overflow: hidden; }
+  .ins-cat-header { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .ins-cat-icon-badge { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .ins-cat-title { font-size: 14px; font-weight: 600; flex: 1; }
+  .ins-cat-icon { display: none; }
+  .ins-cat-count { font-size: 11px; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 999px; }
+  .ins-cat-header { cursor: pointer; transition: filter 0.15s; }
+  .ins-cat-header:hover { filter: brightness(0.96); }
+  .ins-cat-toggle { font-size: 10px; opacity: 0.5; transition: transform 0.2s; flex-shrink: 0; }
+  .ins-cat-toggle.open { transform: rotate(90deg); }
+  .ins-list { display: none; max-height: 320px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .ins-list.open { display: block; }
   .ins-list::-webkit-scrollbar { width: 4px; }
   .ins-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   .ins-row { display: flex; align-items: center; gap: 10px; padding: 7px 18px; transition: background 0.1s; border-bottom: 1px solid var(--border); }
@@ -370,6 +415,44 @@
   .ing-empty-msg { font-size: 12px; color: var(--ink3); font-style: italic; padding: 4px 0; }
   #viewRecetas { display: none; }
   #viewVentas { display: none; }
+  #viewDeposito { display: none; }
+  #viewAperturas { display: none; }
+  .ap-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .ap-item { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .ap-item-info { flex: 1; min-width: 0; }
+  .ap-item-nombre { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .ap-item-meta { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .ap-item-fecha { font-size: 11px; color: var(--ink2); font-family: 'DM Mono', monospace; text-align: right; flex-shrink: 0; }
+  .dep-alerta { background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: #B91C1C; flex-shrink: 0; }
+  .dep-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .dep-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+  .dep-title { font-size: 18px; font-weight: 600; }
+  .dep-sub { font-size: 13px; color: var(--ink2); margin-top: 2px; }
+  .dep-summary-bar { background: var(--ink); color: #fff; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .dep-summary-stat { display: flex; flex-direction: column; gap: 2px; }
+  .dep-summary-label { font-size: 11px; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; }
+  .dep-summary-value { font-size: 20px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .dep-cat-section { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 12px; }
+  .dep-cat-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; transition: background 0.15s; border-bottom: 1px solid transparent; }
+  .dep-cat-header:hover { background: var(--surface2); }
+  .dep-cat-header.open { border-bottom-color: var(--border); }
+  .dep-cat-body { display: none; }
+  .dep-cat-body.open { display: block; }
+  .dep-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  .dep-item:last-child { border-bottom: none; }
+  .dep-item:hover { background: var(--surface2); }
+  .dep-item-nombre { flex: 1; font-size: 13px; font-weight: 500; color: var(--ink); }
+  .dep-item-prov { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+  .dep-item-stock { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .dep-item-cant { font-size: 16px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--ink); min-width: 28px; text-align: center; }
+  .dep-item-cant.bajo { color: #EF4444; }
+  .dep-item-unit { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+  .dep-item-pres { font-size: 11px; color: var(--ink2); font-family: 'DM Mono', monospace; background: var(--surface2); padding: 2px 7px; border-radius: 6px; flex-shrink: 0; }
+  .btn-abrir { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 8px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .btn-abrir:hover { background: var(--accent-light); }
+  .btn-abrir:disabled { opacity: 0.35; pointer-events: none; }
+  .dep-empty { text-align: center; padding: 48px 16px; color: var(--ink3); font-size: 14px; }
+  .dep-empty-icon { font-size: 40px; margin-bottom: 12px; }
   .rec-cat-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
   .rec-cat-filter { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: 999px; border: 1.5px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .rec-cat-filter:hover { border-color: var(--accent); color: var(--accent); }
@@ -381,17 +464,31 @@
   .rec-sub { font-size: 13px; color: var(--ink2); margin-top: 2px; }
   .btn-nueva-receta { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 9px 18px; border-radius: 8px; border: none; background: var(--ink); color: #fff; cursor: pointer; transition: all 0.15s; }
   .btn-nueva-receta:hover { background: #333; }
+  .recetas-search { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--ink); outline: none; box-sizing: border-box; margin-bottom: 20px; }
+  .recetas-search:focus { border-color: var(--accent); }
+  .receta-rubro-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .receta-rubro-filter { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 999px; border: 2px solid transparent; cursor: pointer; transition: all 0.15s; white-space: nowrap; opacity: 0.7; }
+  .receta-rubro-filter:hover { opacity: 1; }
+  .receta-rubro-filter.active { opacity: 1; border-color: currentColor; }
+  .receta-rubro-section { margin-bottom: 28px; }
+  .receta-rubro-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+  .receta-rubro-label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--ink2); }
+  .receta-rubro-badge { font-size: 11px; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 999px; background: var(--surface2); color: var(--ink3); }
   .recetas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
   .receta-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-  .receta-card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .receta-card-header { padding: 14px 18px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; transition: background 0.1s; }
+  .receta-card-header:hover { background: var(--surface2); }
   .receta-card-title { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
   .receta-card-meta { font-size: 11px; color: var(--ink3); margin-top: 3px; font-family: 'DM Mono', monospace; }
+  .receta-card-toggle { font-size: 10px; color: var(--ink3); transition: transform 0.2s; flex-shrink: 0; margin-top: 5px; }
+  .receta-card-toggle.open { transform: rotate(90deg); }
   .receta-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .btn-edit-rec { font-size: 13px; background: none; border: none; cursor: pointer; color: var(--ink3); padding: 3px 6px; border-radius: 6px; transition: all 0.15s; }
   .btn-edit-rec:hover { background: var(--surface2); color: var(--ink); }
   .btn-del-rec { font-size: 13px; background: none; border: none; cursor: pointer; color: var(--ink3); padding: 3px 6px; border-radius: 6px; transition: all 0.15s; }
   .btn-del-rec:hover { background: #FEE2E2; color: #B91C1C; }
-  .receta-ing-list { padding: 6px 0; }
+  .receta-ing-list { display: none; border-top: 1px solid var(--border); padding: 6px 0; }
+  .receta-ing-list.open { display: block; }
   .receta-ing-row { display: flex; align-items: center; gap: 8px; padding: 6px 18px; font-size: 13px; border-bottom: 1px solid var(--border); }
   .receta-ing-row:last-child { border-bottom: none; }
   .receta-ing-name { flex: 1; color: var(--ink); }
@@ -482,6 +579,52 @@
   .mapping-row select { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--ink); outline: none; cursor: pointer; flex: 1; min-width: 180px; }
   .mapping-row select:focus { border-color: var(--accent); }
 
+  /* AUDITORIA */
+  .audit-rubro { border-bottom: 1px solid var(--border); }
+  .audit-rubro-header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--surface2); }
+  .audit-rubro-name { font-size: 13px; font-weight: 700; flex: 1; }
+  .audit-badge-ok  { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #D1FAE5; color: #065F46; }
+  .audit-badge-err { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #FEE2E2; color: #991B1B; }
+  .audit-prod-row  { display: flex; align-items: center; gap: 10px; padding: 7px 16px 7px 24px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .audit-prod-row:last-child { border-bottom: none; }
+  .audit-icon-ok  { color: #16A34A; font-size: 14px; flex-shrink: 0; }
+  .audit-icon-err { color: #DC2626; font-size: 14px; flex-shrink: 0; }
+  .audit-prod-nombre { flex: 1; }
+  .audit-prod-receta { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+
+  /* COCINA SUB-RUBROS */
+  .cocina-sub-section { border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; border: 1.5px solid transparent; transition: border-color 0.15s; }
+  .cocina-sub-header { display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; transition: filter 0.15s; user-select: none; }
+  .cocina-sub-header:hover { filter: brightness(0.96); }
+  .cocina-sub-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .cocina-sub-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .cocina-sub-nombre { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+  .cocina-sub-meta { font-size: 11px; opacity: 0.65; }
+  .cocina-sub-toggle { font-size: 10px; opacity: 0.5; transition: transform 0.2s; flex-shrink: 0; }
+  .cocina-sub-toggle.open { transform: rotate(90deg); }
+  .cocina-sub-body { display: none; padding: 14px; background: var(--bg); }
+  .cocina-sub-body.open { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+
+  /* WIZARD RECETAS */
+  .wiz-rubro-section { border-bottom: 1px solid var(--border); }
+  .wiz-rubro-section:last-child { border-bottom: none; }
+  .wiz-rubro-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .wiz-rubro-header:hover { background: var(--surface2); }
+  .wiz-rubro-toggle { font-size: 10px; color: var(--ink3); transition: transform 0.2s; }
+  .wiz-rubro-toggle.open { transform: rotate(90deg); }
+  .wiz-rubro-name { font-size: 14px; font-weight: 600; flex: 1; }
+  .wiz-rubro-count { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+  .wiz-rubro-actions { display: flex; gap: 6px; }
+  .wiz-rubro-btn { font-family: 'DM Sans', sans-serif; font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--ink2); cursor: pointer; }
+  .wiz-rubro-btn:hover { background: var(--surface2); }
+  .wiz-prod-list { display: none; flex-direction: column; padding: 4px 0 8px; }
+  .wiz-prod-list.open { display: flex; }
+  .wiz-prod-row { display: flex; align-items: center; gap: 10px; padding: 7px 16px 7px 20px; cursor: pointer; transition: background 0.1s; }
+  .wiz-prod-row:hover { background: var(--surface2); }
+  .wiz-prod-row input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+  .wiz-prod-nombre { flex: 1; font-size: 13px; }
+  .wiz-prod-codigo { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; }
+
   /* ANALYTICS */
   .ventas-tabs { display: flex; gap: 4px; padding: 12px 16px 0; background: var(--surface); border-bottom: 1px solid var(--border); }
   .ventas-tab { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 16px; border-radius: 8px 8px 0 0; border: 1.5px solid transparent; background: transparent; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
@@ -490,8 +633,10 @@
   .analytics-container { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
   .analytics-section-title { font-size: 13px; font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
   .analytics-kpi-rubros { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-  .rubro-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s; }
+  .rubro-card { background: var(--surface); border: 1px solid var(--border); border-top-width: 3px; border-radius: var(--radius); padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s; }
   .rubro-card:hover { box-shadow: var(--shadow); }
+  .rubro-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .rubro-card-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
   .rubro-card-bar { height: 4px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
   .rubro-card-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
   .analytics-rankings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -554,17 +699,21 @@
 @keyframes dot { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
 </style>
 
+<div id="importProgress"><div id="importProgressBar"></div></div>
+<div id="importProgressLabel"></div>
+
 <header>
   <div style="display:flex;align-items:center;gap:12px">
     <h1>🛒 Sistema de Pedidos</h1>
     <nav class="nav-tabs">
       <button class="nav-tab active" data-view="pedidos" onclick="switchView('pedidos')">📋 <span>Pedidos</span></button>
       <button class="nav-tab" data-view="precios" onclick="switchView('precios')">💲 <span>Precios</span></button>
-      <button class="nav-tab" data-view="historial" onclick="switchView('historial')">🕒 <span>Historial</span></button>
       <button class="nav-tab" data-view="recetas" onclick="switchView('recetas')">👨‍🍳 <span>Recetas</span></button>
       <button class="nav-tab" data-view="insumos" onclick="switchView('insumos')">🗂 <span>Insumos</span></button>
       <button class="nav-tab" data-view="ventas" onclick="switchView('ventas')">💰 <span>Ventas</span></button>
       <button class="nav-tab" data-view="pendientes" onclick="switchView('pendientes')">🚚 <span>Pendientes</span></button>
+      <button class="nav-tab" data-view="deposito" id="tab-deposito" onclick="switchView('deposito')">🏭 <span>Depósito</span><span id="deposito-badge" style="display:none;margin-left:5px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;vertical-align:middle"></span></button>
+      <button class="nav-tab" data-view="aperturas" onclick="switchView('aperturas')">🔓 <span>Aperturas</span></button>
       <button class="nav-tab" data-view="pagos" onclick="switchView('pagos')" id="tab-pagos">💳 <span>Pagos</span><span id="pagos-badge" style="display:none;margin-left:5px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;vertical-align:middle"></span></button>
     </nav>
   </div>
@@ -572,6 +721,7 @@
     <img id="userAvatar" src="" style="display:none;width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);object-fit:cover">
     <span id="userInitial" style="display:none;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:600;align-items:center;justify-content:center"></span>
     <span id="userName" style="font-size:12px;color:#aaa;font-family:'DM Mono',monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <button class="hist-btn" id="histBtn" onclick="switchView('historial')" title="Historial de precios">🕒</button>
     <button onclick="logoutAndReset()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">Salir</button>
   </div>
 </header>
@@ -747,6 +897,7 @@
         <div class="pend-sub">Pedidos enviados por WhatsApp en espera de recepción</div>
       </div>
     </div>
+    <div id="pendTotalBar" style="display:none"></div>
     <div class="pend-list" id="pendList"></div>
   </div>
 </div>
@@ -897,18 +1048,16 @@
         <div class="rec-title">👨‍🍳 Recetas</div>
         <div class="rec-sub">Calculá el costo y precio de venta de cada preparación</div>
       </div>
-      <button class="btn-nueva-receta" onclick="abrirModalReceta()">+ Nueva receta</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-nueva-receta" onclick="abrirAuditoriaRecetas()" style="background:var(--surface);color:var(--ink2);border:1.5px solid var(--border)">📊 Cobertura</button>
+        <button class="btn-nueva-receta" onclick="abrirWizardRecetas()" style="background:var(--info)">🧾 Desde productos</button>
+        <button class="btn-nueva-receta" onclick="abrirModalNuevoRubro()" style="background:var(--surface);color:var(--ink2);border:1.5px solid var(--border)">+ Nuevo rubro</button>
+        <button class="btn-nueva-receta" onclick="abrirModalReceta()">+ Nueva receta</button>
+      </div>
     </div>
-    <div class="rec-cat-filters" id="recCatFilters">
-      <button class="rec-cat-filter active" data-cat="todas" onclick="filtrarRecetas('todas')">Todas</button>
-      <button class="rec-cat-filter" data-cat="panaderia" onclick="filtrarRecetas('panaderia')">🍞 Panadería</button>
-      <button class="rec-cat-filter" data-cat="pastas" onclick="filtrarRecetas('pastas')">🍝 Pastas</button>
-      <button class="rec-cat-filter" data-cat="pasteleria" onclick="filtrarRecetas('pasteleria')">🎂 Pastelería</button>
-      <button class="rec-cat-filter" data-cat="cocina" onclick="filtrarRecetas('cocina')">🍳 Cocina</button>
-      <button class="rec-cat-filter" data-cat="cafeteria" onclick="filtrarRecetas('cafeteria')">☕ Cafetería</button>
-      <button class="rec-cat-filter" data-cat="combo_cafeteria" onclick="filtrarRecetas('combo_cafeteria')">🥐 Combo Cafetería</button>
-    </div>
-    <div class="recetas-grid" id="recetasGrid"></div>
+    <input class="recetas-search" id="recetasBusqueda" type="text" placeholder="Buscar receta..." oninput="renderRecetas()">
+    <div class="receta-rubro-filters" id="recetaRubroFilters"></div>
+    <div id="recetasGrid"></div>
   </div>
 </div>
 
@@ -925,17 +1074,31 @@
           <div class="rec-field-label">Nombre de la receta</div>
           <input class="rec-field-input" id="recNombre" type="text" placeholder="Ej: Torta Bruce">
         </div>
-        <div>
-          <div class="rec-field-label">Categoría</div>
-          <select class="rec-field-input" id="recCategoria" style="cursor:pointer">
-            <option value="">Sin categoría</option>
-            <option value="panaderia">🍞 Panadería</option>
-            <option value="pastas">🍝 Pastas</option>
-            <option value="pasteleria">🎂 Pastelería</option>
-            <option value="cocina">🍳 Cocina</option>
-            <option value="cafeteria">☕ Cafetería</option>
-            <option value="combo_cafeteria">🥐 Combo Cafetería</option>
-          </select>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div>
+            <div class="rec-field-label">Rubro</div>
+            <select class="rec-field-input" id="recRubro" style="cursor:pointer" onchange="onRecRubroChange()">
+              <option value="">Sin rubro</option>
+              <option value="Pastas">🍝 Pastas</option>
+              <option value="Desayunos y Meriendas">🥐 Desayunos y Meriendas</option>
+              <option value="Cafetería">☕ Cafetería</option>
+              <option value="Pastelería">🎂 Pastelería</option>
+              <option value="Menú del Día">🍽 Menú del Día</option>
+              <option value="Panadería">🍞 Panadería</option>
+              <option value="Cocina">🍳 Cocina</option>
+              <div id="recRubroCustomOpts"></div>
+            </select>
+          </div>
+          <div id="recSubRubroWrap" style="display:none">
+            <div class="rec-field-label">Sub-rubro</div>
+            <select class="rec-field-input" id="recSubRubro" style="cursor:pointer">
+              <option value="">Sin sub-rubro</option>
+              <option value="Wraps">🌯 Wraps</option>
+              <option value="Ensaladas">🥗 Ensaladas</option>
+              <option value="Tartas">🥧 Tartas</option>
+              <option value="Salsas">🫙 Salsas</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="rec-row2">
@@ -996,6 +1159,34 @@
       <button class="btn-cancel-rec" onclick="cerrarModalReceta()">Cancelar</button>
       <button class="btn-save-rec" onclick="guardarReceta()">Guardar receta</button>
     </div>
+  </div>
+</div>
+
+<!-- APERTURAS VIEW -->
+<div id="viewAperturas">
+  <div class="ap-container">
+    <div class="dep-top">
+      <div>
+        <div class="dep-title">🔓 Aperturas</div>
+        <div class="dep-sub">Historial de bultos abiertos al stock de producción</div>
+      </div>
+    </div>
+    <div id="aperturasFilters" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"></div>
+    <div id="aperturaslist"></div>
+  </div>
+</div>
+
+<!-- DEPOSITO VIEW -->
+<div id="viewDeposito">
+  <div class="dep-container">
+    <div class="dep-top">
+      <div>
+        <div class="dep-title">🏭 Depósito</div>
+        <div class="dep-sub">Stock de mercadería recibida de proveedores</div>
+      </div>
+    </div>
+    <div id="depSummaryBar" style="display:none"></div>
+    <div id="depList"></div>
   </div>
 </div>
 
@@ -1076,6 +1267,61 @@
   </div>
 </div>
 
+<!-- MODAL NUEVO RUBRO -->
+<div class="rec-modal-overlay" id="nuevoRubroOverlay">
+  <div class="rec-modal" style="max-width:380px">
+    <div class="rec-modal-header">
+      <span class="rec-modal-title">Nuevo rubro</span>
+      <button class="modal-close" onclick="document.getElementById('nuevoRubroOverlay').classList.remove('open')">×</button>
+    </div>
+    <div class="rec-modal-body">
+      <div class="rec-field-label">Nombre del rubro</div>
+      <input class="rec-field-input" id="nuevoRubroNombre" type="text" placeholder="Ej: Repostería">
+    </div>
+    <div class="rec-modal-footer">
+      <button class="btn-cancel-rec" onclick="document.getElementById('nuevoRubroOverlay').classList.remove('open')">Cancelar</button>
+      <button class="btn-save-rec" onclick="guardarNuevoRubro()">Crear rubro</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUDITORIA COBERTURA RECETAS -->
+<div class="rec-modal-overlay" id="auditoriaOverlay">
+  <div class="rec-modal" style="max-width:620px">
+    <div class="rec-modal-header">
+      <span class="rec-modal-title">Cobertura de recetas por rubro</span>
+      <button class="modal-close" onclick="document.getElementById('auditoriaOverlay').classList.remove('open')">×</button>
+    </div>
+    <div class="rec-modal-body" style="padding:0">
+      <div id="auditoriaBody" style="overflow-y:auto;max-height:70vh"></div>
+    </div>
+    <div class="rec-modal-footer">
+      <button class="btn-cancel-rec" onclick="document.getElementById('auditoriaOverlay').classList.remove('open')">Cerrar</button>
+      <button class="btn-save-rec" onclick="cerrarAuditoriaYAbrirWizard()">Crear recetas faltantes</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD CREAR RECETAS -->
+<div class="rec-modal-overlay" id="recetaWizardOverlay">
+  <div class="rec-modal" style="max-width:580px">
+    <div class="rec-modal-header">
+      <span class="rec-modal-title">Crear recetas desde productos</span>
+      <button class="modal-close" onclick="cerrarWizardRecetas()">×</button>
+    </div>
+    <div class="rec-modal-body" style="padding:0;gap:0">
+      <div id="wizardRubroList" style="overflow-y:auto;max-height:62vh"></div>
+    </div>
+    <div class="rec-modal-footer" style="justify-content:space-between">
+      <span id="wizardSelCounter" style="font-size:13px;color:var(--ink2);font-weight:500">0 seleccionados</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-cancel-rec" onclick="cerrarWizardRecetas()">Cancelar</button>
+        <button class="btn-save-rec" onclick="wizardConfirmar()">Crear recetas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -1122,6 +1368,21 @@ const PROVIDERS = [
 ];
 
 const CATS = { almacen:"Almacén", reposteria:"Repostería", lacteos:"Lácteos", fiambres:"Fiambres", especias:"Especias", carnes:"Carnes", congelados:"Congelados", cafe:"Café", descartables:"Descartables", limpieza:"Limpieza", verduleria:"Verdulería", bebidas:"Bebidas" };
+const PROV_CAT_STYLES = {
+  almacen:      { bg:'#FEF3C7', color:'#92400E', icon:'🌾' },
+  reposteria:   { bg:'#FCE7F3', color:'#9D174D', icon:'🎂' },
+  lacteos:      { bg:'#FFFBEB', color:'#78350F', icon:'🥛' },
+  fiambres:     { bg:'#FEE2E2', color:'#991B1B', icon:'🥩' },
+  especias:     { bg:'#FFF7ED', color:'#C2410C', icon:'🌶' },
+  carnes:       { bg:'#FEE2E2', color:'#B91C1C', icon:'🥩' },
+  congelados:   { bg:'#EFF6FF', color:'#1E40AF', icon:'🧊' },
+  cafe:         { bg:'#EDE9FE', color:'#5B21B6', icon:'☕' },
+  descartables: { bg:'#F0F9FF', color:'#0369A1', icon:'📦' },
+  limpieza:     { bg:'#F0FDF4', color:'#15803D', icon:'🧹' },
+  verduleria:   { bg:'#ECFDF5', color:'#065F46', icon:'🥬' },
+  bebidas:      { bg:'#EDE9FE', color:'#4C1D95', icon:'🍾' },
+  otros:        { bg:'#F8FAFC', color:'#475569', icon:'📦' },
+};
 const PAGO_LABEL = { transfer:"Transferencia", efectivo:"Efectivo", ambos:"Transfer / Efectivo" };
 const PAGO_CHIP  = { transfer:"chip chip-transfer", efectivo:"chip chip-efectivo", ambos:"chip chip-ambos" };
 const COND_PAGO_LABEL = { contado:'Contado', '7dias':'7 días', '15dias':'15 días' };
@@ -1139,6 +1400,22 @@ function fmtTel(t) { const c=t.replace(/\D/g,''); return c.length===10?`${c.slic
 function fmtPrice(p) { return p?`$${Number(p).toLocaleString('es-AR')}`:'—'; }
 function key(pid,idx) { return `${pid}_${idx}`; }
 function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+let _progressTimer = null;
+function setImportProgress(pct, msg) {
+  document.getElementById('importProgressBar').style.width = pct + '%';
+  const lbl = document.getElementById('importProgressLabel');
+  lbl.textContent = msg;
+  lbl.style.opacity = '1';
+  if (_progressTimer) clearTimeout(_progressTimer);
+  if (pct >= 100) {
+    _progressTimer = setTimeout(() => {
+      document.getElementById('importProgressBar').style.width = '0';
+      lbl.style.opacity = '0';
+    }, 1000);
+  }
+}
+function clearImportProgress() { setImportProgress(100, '✓ Listo'); }
 
 // Búsqueda por múltiples palabras — "az sob" encuentra "Azucar en sobre"
 function multiMatch(text, term) {
@@ -1188,10 +1465,11 @@ window.guardarNuevoProv = async () => {
   // Add to filter bar if cat is new
   const existingFilter = document.querySelector(`.filter-btn[data-filter="${cat}"]`);
   if (!existingFilter) {
-    const CATS = { almacen:"Almacén", reposteria:"Repostería", lacteos:"Lácteos", fiambres:"Fiambres", especias:"Especias", carnes:"Carnes", congelados:"Congelados", cafe:"Café", descartables:"Descartables", limpieza:"Limpieza", verduleria:"Verdulería", bebidas:"Bebidas", otros:"Otros" };
+    const cs2 = PROV_CAT_STYLES[cat] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
     const btn = document.createElement('button');
     btn.className = 'filter-btn'; btn.dataset.filter = cat;
-    btn.textContent = CATS[cat] || cat;
+    btn.style.background=cs2.bg; btn.style.color=cs2.color; btn.style.borderColor=cs2.bg;
+    btn.innerHTML = `${cs2.icon} ${CATS[cat] || cat}`;
     btn.onclick = () => setFilter(cat);
     document.getElementById('filterBar').appendChild(btn);
   }
@@ -1207,8 +1485,10 @@ function buildSingleCard(p) {
   const PAGO_CHIP  = { transfer:"chip chip-transfer", efectivo:"chip chip-efectivo", ambos:"chip chip-ambos" };
   const telChip = p.tel ? `<a class="chip chip-tel" href="tel:+54${p.tel.replace(/\D/g,'')}">📞 ${fmtTel(p.tel)}</a>` : `<span class="chip chip-notel">Sin teléfono</span>`;
   const pagoChip = `<span class="${PAGO_CHIP[p.pago]}">${PAGO_LABEL[p.pago]}</span>`;
+  const bsc = PROV_CAT_STYLES[p.cat] || { color:'#6B6760' };
   const card = document.createElement('div');
   card.className = 'provider-card'; card.dataset.cat = p.cat; card.id = 'card-' + p.id;
+  card.style.borderTopWidth='3px'; card.style.borderTopColor=bsc.color;
   card.innerHTML = `
     <div class="card-header">
       <div class="card-header-top">
@@ -1242,17 +1522,20 @@ function buildSingleCard(p) {
 
 function addProviderToPrecios(p) {
   const grid = document.getElementById('preciosGrid');
+  const prc = PROV_CAT_STYLES[p.cat] || { color:'#6B6760' };
   const card = document.createElement('div');
   card.className = 'precio-card'; card.id = `pcard-${p.id}`;
+  card.style.borderTopWidth='3px'; card.style.borderTopColor=prc.color;
   const header = document.createElement('div');
   header.className = 'precio-card-header';
   header.id = `pheader-${p.id}`;
   header.innerHTML = `
+    <div class="card-cat-badge" style="background:${prc.bg||'var(--surface2)'};color:${prc.color}">${prc.icon||'📦'}</div>
     <div class="precio-card-left">
       <span class="precio-card-title">${p.name}</span>
       <span class="precio-card-meta" id="pmeta-${p.id}">0/0 con precio</span>
     </div>
-    <span class="precio-card-chevron" id="pchevron-${p.id}">▼</span>`;
+    <span class="precio-card-chevron" id="pchevron-${p.id}">▶</span>`;
   header.onclick = () => togglePrecioCard(p.id);
   const body = document.createElement('div');
   body.className = 'precio-card-body';
@@ -1338,11 +1621,11 @@ const RUBROS_CANON = {
   'pastas': 'Pastas',
   'desayunos y meriendas': 'Desayunos y Meriendas',
   'cafeteria': 'Cafetería', 'cafetería': 'Cafetería',
-  'sandwich': 'Sandwich', 'sandwiches': 'Sandwich',
+  'sandwich': 'Panadería', 'sandwiches': 'Panadería',
   'wraps': 'Wraps',
   'ensaladas': 'Ensaladas',
   'jugos y licuados': 'Jugos y Licuados',
-  'pasteleria': 'Pastelería', 'pastelería': 'Pastelería',
+  'pasteleria': 'Pastelería', 'pastelería': 'Pastelería', 'tarta': 'Tartas', 'tartas': 'Tartas',
   'menu del dia': 'Menú del Día', 'menú del día': 'Menú del Día'
 };
 function normalizeRubro(r) {
@@ -1365,6 +1648,13 @@ const UNIDAD_EQUIV = { cdita:'≈ 5ml', cda:'≈ 15ml', taza:'≈ 240ml' };
 
 // presentations: { "pid_idx": { qty, unit } }
 let presentations = {};
+
+// stockDeposito: { "pid_idx": { provId, idx, nombre, provName, cantidad } }
+let stockDeposito = {};
+// stockProduccion: { "pid_idx": { ..., cantidadBase, unidadBase } } — en gramos/ml/u
+let stockProduccion = {};
+// aperturas: array ordenado desc por fecha
+let aperturas = [];
 
 function calcCostoIngrediente(pid, idx, cantidad, unidad) {
   const k = key(pid, idx);
@@ -1436,6 +1726,7 @@ function fmtPrecio(n) {
 let recIngredientes = []; // { tipo, pid/recetaId, nombre, provName, cantidad, unidad/porciones }
 let activeCat = null;
 let recCatFiltro = 'todas';
+let recRubroFiltro = 'todos';
 
 window.crearInsumoDesdeReceta = async () => {
   const input = document.getElementById('nuevoInsumoNombre');
@@ -1529,7 +1820,11 @@ window.abrirModalReceta = (id = null) => {
   document.getElementById('recNombre').value = rec?.nombre || '';
   document.getElementById('recPorciones').value = rec?.porciones || '';
   document.getElementById('recMargen').value = rec?.margen || '';
-  document.getElementById('recCategoria').value = rec?.categoria || '';
+  actualizarSelectRubros();
+  const rubroVal = rec?.rubro || (rec?.categoria ? (CAT_TO_RUBRO_INLINE[rec.categoria] || '') : '');
+  document.getElementById('recRubro').value = rubroVal;
+  document.getElementById('recSubRubro').value = rec?.subRubro || '';
+  document.getElementById('recSubRubroWrap').style.display = rubroVal === 'Cocina' ? '' : 'none';
   recIngredientes = rec?.ingredientes ? rec.ingredientes.map(i => ({...i})) : [];
   activeCat = null;
   const panel = document.getElementById('ingSelectorPanel');
@@ -1770,8 +2065,9 @@ window.guardarReceta = async () => {
     Guardando...
   </span>`;
 
-  const categoria = document.getElementById('recCategoria').value;
-  const receta = { nombre, porciones, margen, categoria, ingredientes: recIngredientes, updatedAt: Date.now() };
+  const rubro = document.getElementById('recRubro').value;
+  const subRubro = rubro === 'Cocina' ? (document.getElementById('recSubRubro').value || '') : '';
+  const receta = { nombre, porciones, margen, rubro, subRubro, ingredientes: recIngredientes, updatedAt: Date.now() };
   try {
     if (editingRecetaId) {
       await setDoc(doc(db,'recetas', editingRecetaId), receta);
@@ -1849,7 +2145,8 @@ window.handleFileUpload = (inputEl) => {
     inputEl.value = '';
     return;
   }
-  parseExcel(file).catch(e => { showToast('Error al leer el archivo'); console.error(e); });
+  setImportProgress(10, 'Leyendo archivo...');
+  parseExcel(file).catch(e => { showToast('Error al leer el archivo'); clearImportProgress(); console.error(e); });
 };
 
 async function parseExcel(file) {
@@ -1897,6 +2194,7 @@ function normalizeName(s) {
 }
 
 function renderImportPreview(validRows, discardedRows) {
+  setImportProgress(35, `${validRows.length} filas procesadas`);
   _pendingImport = { validRows, discardedRows, matched: [], unmatched: [] };
   const stats = document.getElementById('ventasPreviewStats');
   stats.innerHTML = `
@@ -1935,6 +2233,7 @@ window.ventasPreviewContinuar = async () => {
 };
 
 async function resolveMapping(rows) {
+  setImportProgress(60, 'Verificando recetas...');
   await loadMapaMaxirest();
   const recNormMap = {};
   Object.values(recetasMap).forEach(r => { recNormMap[normalizeName(r.nombre)] = r; });
@@ -2039,6 +2338,36 @@ window.confirmarMapeoYContinuar = async () => {
   await confirmarImportacion();
 };
 
+async function descontarStockPorVentas(matched) {
+  try {
+    const {increment: fsIncrement} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const UNIDAD_BASE = { g:1, kg:1000, ml:1, L:1000, u:1, cdita:5, cda:15, taza:240 };
+    // Acumular consumos por insumo para hacer un solo write por key
+    const consumos = {};
+    for (const row of matched) {
+      const receta = row.recetaId ? recetasMap[row.recetaId] : null;
+      if (!receta?.ingredientes?.length) continue;
+      const unidadesVendidas = row['UNIDADES'] || 0;
+      if (!unidadesVendidas) continue;
+      const porciones = receta.porciones || 1;
+      for (const ing of receta.ingredientes) {
+        if (ing.tipo !== 'insumo') continue;
+        const k = key(ing.pid, ing.idx);
+        const sp = stockProduccion[k];
+        if (!sp) continue; // no está en producción, ignorar
+        const consumoPorPorcion = ing.cantidad / porciones;
+        const consumoTotal = consumoPorPorcion * unidadesVendidas;
+        const consumoBase = consumoTotal * (UNIDAD_BASE[ing.unidad] || 1);
+        consumos[k] = (consumos[k] || 0) + consumoBase;
+      }
+    }
+    // Writes
+    for (const [k, consumoBase] of Object.entries(consumos)) {
+      await setDoc(doc(db,'stockProduccion',k), { cantidadBase: fsIncrement(-consumoBase) }, {merge:true});
+    }
+  } catch(e) { console.error('Error descontando stock:', e); }
+}
+
 window.confirmarImportacion = async () => {
   const { matched, periodoLabel, fechaInicio, fechaFin, canal } = _pendingImport;
   const existing = ventasData.filter(v => v.periodoLabel === periodoLabel);
@@ -2082,6 +2411,7 @@ window.confirmarImportacion = async () => {
     if (it.gananciaItem !== null) totalGanancia += it.gananciaItem;
   });
   const margenPct = totalVenta > 0 ? (totalGanancia / totalVenta) * 100 : 0;
+  setImportProgress(85, 'Guardando en base de datos...');
   try {
     await addDoc(collection(db,'ventas'), {
       periodoLabel,
@@ -2094,6 +2424,9 @@ window.confirmarImportacion = async () => {
       totales: { ingresos: totalVenta, costo: totalCosto, ganancia: totalGanancia, margenPct },
       items
     });
+    // Descontar insumos del stock de producción
+    await descontarStockPorVentas(matched);
+    clearImportProgress();
     showToast('✓ Importación guardada');
     document.getElementById('ventasFileInput').value = '';
     _pendingImport = null;
@@ -2106,23 +2439,159 @@ window.confirmarImportacion = async () => {
 };
 
 const CAT_LABELS = { panaderia:'🍞 Panadería', pastas:'🍝 Pastas', pasteleria:'🎂 Pastelería', cocina:'🍳 Cocina', cafeteria:'☕ Cafetería', combo_cafeteria:'🥐 Combo Cafetería' };
+const CAT_TO_RUBRO_INLINE = { pastas:'Pastas', pasteleria:'Pastelería', panaderia:'Panadería', cocina:'Cocina', cafeteria:'Cafetería', combo_cafeteria:'Cafetería' };
 const CAT_COLORS = { panaderia:'#FEF3C7;color:#92400E', pastas:'#FEE2E2;color:#991B1B', pasteleria:'#FCE7F3;color:#9D174D', cocina:'#D1FAE5;color:#065F46', cafeteria:'#EDE9FE;color:#5B21B6', combo_cafeteria:'#FFF7ED;color:#C2410C' };
+
+const RUBRO_STYLES = {
+  'Pastas':               { bg:'#FEE2E2', color:'#991B1B', icon:'🍝' },
+  'Desayunos y Meriendas':{ bg:'#FEF9C3', color:'#854D0E', icon:'🥐' },
+  'Cafetería':            { bg:'#EDE9FE', color:'#5B21B6', icon:'☕' },
+  'Sandwich':             { bg:'#FFF7ED', color:'#C2410C', icon:'🥪' },
+  'Wraps':                { bg:'#ECFDF5', color:'#065F46', icon:'🌯' },
+  'Ensaladas':            { bg:'#D1FAE5', color:'#065F46', icon:'🥗' },
+  'Pastelería':           { bg:'#FCE7F3', color:'#9D174D', icon:'🎂' },
+  'Tartas':               { bg:'#FFF0F6', color:'#9D174D', icon:'🥧' },
+  'Menú del Día':         { bg:'#DBEAFE', color:'#1E40AF', icon:'🍽' },
+  'Panadería':            { bg:'#FEF3C7', color:'#92400E', icon:'🍞' },
+  'Cocina':               { bg:'#D1FAE5', color:'#065F46', icon:'🍳' },
+};
+
+function renderRecetasFiltros(grupos) {
+  const bar = document.getElementById('recetaRubroFilters');
+  if (!bar) return;
+  bar.innerHTML = [`<button class="receta-rubro-filter active" data-rubro="todos"
+    style="background:#F0EDE8;color:#1A1814" onclick="setRecetaRubro('todos')">Todas</button>`]
+    .concat(grupos.map(g => {
+      const s = RUBRO_STYLES[g] || { bg:'#F0EDE8', color:'#6B6760', icon:'📋' };
+      return `<button class="receta-rubro-filter" data-rubro="${g}"
+        style="background:${s.bg};color:${s.color}"
+        onclick="setRecetaRubro('${g}')">${s.icon} ${g}</button>`;
+    })).join('');
+  bar.querySelectorAll('.receta-rubro-filter').forEach(b =>
+    b.classList.toggle('active', b.dataset.rubro === recRubroFiltro)
+  );
+}
+
+const COCINA_SUB_RUBROS = ['Wraps','Ensaladas','Tartas','Salsas'];
+const COCINA_SUB_STYLES = {
+  'Wraps':    { bg:'#FFF7ED', border:'#FDBA74', icon:'🌯', iconBg:'#FED7AA', color:'#C2410C' },
+  'Ensaladas':{ bg:'#F0FDF4', border:'#86EFAC', icon:'🥗', iconBg:'#BBF7D0', color:'#15803D' },
+  'Tartas':   { bg:'#FFF1F2', border:'#FDA4AF', icon:'🥧', iconBg:'#FECDD3', color:'#BE123C' },
+  'Salsas':   { bg:'#FEF2F2', border:'#FCA5A5', icon:'🫙', iconBg:'#FECACA', color:'#DC2626' },
+  'General':  { bg:'#F8FAFC', border:'#CBD5E1', icon:'🍳', iconBg:'#E2E8F0', color:'#475569' },
+};
+
+window.onRecRubroChange = () => {
+  const v = document.getElementById('recRubro').value;
+  document.getElementById('recSubRubroWrap').style.display = v === 'Cocina' ? '' : 'none';
+  if (v !== 'Cocina') document.getElementById('recSubRubro').value = '';
+};
+
+let customRubros = JSON.parse(localStorage.getItem('customRubros') || '[]');
+
+window.abrirModalNuevoRubro = () => {
+  document.getElementById('nuevoRubroNombre').value = '';
+  document.getElementById('nuevoRubroOverlay').classList.add('open');
+};
+
+window.guardarNuevoRubro = () => {
+  const nombre = document.getElementById('nuevoRubroNombre').value.trim();
+  if (!nombre) { showToast('⚠ Ingresá un nombre'); return; }
+  if (!customRubros.includes(nombre)) {
+    customRubros.push(nombre);
+    localStorage.setItem('customRubros', JSON.stringify(customRubros));
+    actualizarSelectRubros();
+  }
+  document.getElementById('nuevoRubroOverlay').classList.remove('open');
+  showToast(`✓ Rubro "${nombre}" creado`);
+};
+
+function actualizarSelectRubros() {
+  const sel = document.getElementById('recRubro');
+  if (!sel) return;
+  document.querySelectorAll('.custom-rubro-opt').forEach(el => el.remove());
+  customRubros.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r; opt.textContent = r; opt.className = 'custom-rubro-opt';
+    sel.appendChild(opt);
+  });
+}
+
+window.toggleCocinaSubRubro = (header) => {
+  const body = header.nextElementSibling;
+  const tog = header.querySelector('.cocina-sub-toggle');
+  const open = body.classList.toggle('open');
+  tog.classList.toggle('open', open);
+};
+
+window.toggleRecetaCard = (header) => {
+  const ingList = header.nextElementSibling;
+  const tog = header.querySelector('.receta-card-toggle');
+  const open = ingList.classList.toggle('open');
+  tog.classList.toggle('open', open);
+};
+
+window.toggleInsCard = (header) => {
+  const list = header.nextElementSibling;
+  const tog = header.querySelector('.ins-cat-toggle');
+  const open = list.classList.toggle('open');
+  tog.classList.toggle('open', open);
+};
+
+window.setRecetaRubro = (rubro) => {
+  recRubroFiltro = rubro;
+  renderRecetas();
+};
 
 window.renderRecetas = () => {
   const grid = document.getElementById('recetasGrid');
-  const filtradas = recCatFiltro === 'todas' ? recetas : recetas.filter(r => (r.categoria || '') === recCatFiltro);
   if (!recetas.length) {
     grid.innerHTML = `<div class="rec-empty"><div class="rec-empty-icon">👨‍🍳</div>No hay recetas todavía.<br>Creá la primera con el botón de arriba.</div>`;
     return;
   }
+  const q = (document.getElementById('recetasBusqueda')?.value || '').toLowerCase().trim();
+  const seenNombres = new Set();
+  const unicas = recetas.filter(r => { const k = r.nombre.toLowerCase().trim(); return seenNombres.has(k) ? false : seenNombres.add(k); });
+  const filtradas = q ? unicas.filter(r => r.nombre.toLowerCase().includes(q)) : unicas;
   if (!filtradas.length) {
-    grid.innerHTML = `<div class="rec-empty"><div class="rec-empty-icon">🔍</div>No hay recetas en esta categoría.</div>`;
+    grid.innerHTML = `<div class="rec-empty"><div class="rec-empty-icon">🔍</div>Sin resultados para "${q}".</div>`;
     return;
   }
-  grid.innerHTML = filtradas.map(rec => {
+
+  // Build recetaId → rubro map from ventasData + mapaMaxirestCache
+  const recetaRubroMap = {};
+  ventasData.forEach(v => {
+    (v.items || []).forEach(it => {
+      const mapa = mapaMaxirestCache[it.codigoMaxirest];
+      if (mapa?.recetaId) recetaRubroMap[mapa.recetaId] = normalizeRubro(it.rubro);
+    });
+  });
+
+  const CAT_TO_RUBRO = {
+    pastas: 'Pastas', pasteleria: 'Pastelería', panaderia: 'Panadería',
+    cocina: 'Cocina', cafeteria: 'Cafetería', combo_cafeteria: 'Cafetería'
+  };
+  const ORDEN = ['Pastas','Desayunos y Meriendas','Cafetería','Cocina','Pastelería','Menú del Día','Panadería'];
+  const byGroup = {};
+  filtradas.forEach(rec => {
+    let g = rec.rubro || recetaRubroMap[rec.id] || CAT_TO_RUBRO[rec.categoria] || rec.categoria || 'Cafetería';
+    if (COCINA_SUB_RUBROS.includes(g)) g = 'Cocina';
+    if (!byGroup[g]) byGroup[g] = [];
+    byGroup[g].push(rec);
+  });
+
+  const todosGrupos = [
+    ...ORDEN.filter(r => byGroup[r]),
+    ...Object.keys(byGroup).filter(g => !ORDEN.includes(g)).sort()
+  ];
+  renderRecetasFiltros(todosGrupos);
+
+  const grupos = recRubroFiltro === 'todos' ? todosGrupos : todosGrupos.filter(g => g === recRubroFiltro);
+
+  const renderCard = (rec) => {
     let costoTotal = 0;
     let algunSinPrecio = false;
-    const ingRows = rec.ingredientes.map(ing => {
+    const ingRows = (rec.ingredientes || []).map(ing => {
       let costo;
       if (ing.tipo === 'receta') {
         const subRec = recetas.find(r => r.id === ing.recetaId);
@@ -2149,16 +2618,16 @@ window.renderRecetas = () => {
     const precioVenta = costoPorcion * (1 + (rec.margen||0) / 100);
     const ganancia = precioVenta - costoPorcion;
     return `<div class="receta-card">
-      <div class="receta-card-header">
-        <div>
+      <div class="receta-card-header" onclick="toggleRecetaCard(this)">
+        <div style="flex:1;min-width:0">
           <div class="receta-card-title">${rec.nombre}</div>
           <div class="receta-card-meta">${rec.porciones} porción${rec.porciones!==1?'es':''} · ${rec.margen||0}% margen${algunSinPrecio?' · ⚠ faltan precios':''}</div>
-          ${rec.categoria && CAT_LABELS[rec.categoria] ? `<span class="receta-cat-badge" style="background:${CAT_COLORS[rec.categoria].split(';')[0]};${CAT_COLORS[rec.categoria].split(';')[1]}">${CAT_LABELS[rec.categoria]}</span>` : ''}
         </div>
         <div class="receta-actions">
-          <button class="btn-edit-rec" onclick="abrirModalReceta('${rec.id}')" title="Editar">✏️</button>
-          <button class="btn-del-rec" onclick="eliminarReceta('${rec.id}')" title="Eliminar">🗑</button>
+          <button class="btn-edit-rec" onclick="event.stopPropagation();abrirModalReceta('${rec.id}')" title="Editar">✏️</button>
+          <button class="btn-del-rec" onclick="event.stopPropagation();eliminarReceta('${rec.id}')" title="Eliminar">🗑</button>
         </div>
+        <span class="receta-card-toggle">▶</span>
       </div>
       <div class="receta-ing-list">${ingRows}</div>
       <div class="receta-footer">
@@ -2175,6 +2644,61 @@ window.renderRecetas = () => {
           <div class="receta-stat-value venta">${fmtPrecio(precioVenta)}</div>
         </div>
       </div>
+    </div>`;
+  };
+
+  const buildCocinaInner = (g) => {
+    const bySub = {};
+    byGroup[g].forEach(rec => {
+      const sub = rec.subRubro || (COCINA_SUB_RUBROS.includes(recetaRubroMap[rec.id]) ? recetaRubroMap[rec.id] : '') || 'General';
+      if (!bySub[sub]) bySub[sub] = [];
+      bySub[sub].push(rec);
+    });
+    const subOrden = [...COCINA_SUB_RUBROS.filter(s => bySub[s]), ...Object.keys(bySub).filter(s => !COCINA_SUB_RUBROS.includes(s)).sort()];
+    return subOrden.map(sub => {
+      const s = COCINA_SUB_STYLES[sub] || COCINA_SUB_STYLES['General'];
+      const n = bySub[sub].length;
+      return `<div class="cocina-sub-section" style="border-color:${s.border}">
+        <div class="cocina-sub-header" style="background:${s.bg}" onclick="toggleCocinaSubRubro(this)">
+          <div class="cocina-sub-icon" style="background:${s.iconBg}">${s.icon}</div>
+          <div class="cocina-sub-info">
+            <span class="cocina-sub-nombre" style="color:${s.color}">${sub}</span>
+            <span class="cocina-sub-meta" style="color:${s.color}">${n} receta${n !== 1 ? 's' : ''}</span>
+          </div>
+          <span class="cocina-sub-toggle" style="color:${s.color}">▶</span>
+        </div>
+        <div class="cocina-sub-body">${bySub[sub].map(r => renderCard(r, s.color)).join('')}</div>
+      </div>`;
+    }).join('');
+  };
+
+  if (recRubroFiltro !== 'todos') {
+    // Rubro específico: mostrar directo sin acordeón
+    const g = grupos[0];
+    if (!g) { grid.innerHTML = ''; return; }
+    const rs = RUBRO_STYLES[g] || { color:'var(--border)' };
+    grid.innerHTML = g === 'Cocina'
+      ? buildCocinaInner(g)
+      : `<div class="recetas-grid">${byGroup[g].map(r => renderCard(r, rs.color)).join('')}</div>`;
+    return;
+  }
+
+  // "Todas": acordeones por rubro, igual que cocina sub-rubros
+  grid.innerHTML = grupos.map(g => {
+    const rs = RUBRO_STYLES[g] || { bg:'#F0EDE8', color:'#6B6760', icon:'📋' };
+    const n = byGroup[g].length;
+    const innerHtml = g === 'Cocina' ? buildCocinaInner(g)
+      : `<div class="recetas-grid">${byGroup[g].map(r => renderCard(r, rs.color)).join('')}</div>`;
+    return `<div class="cocina-sub-section" style="border-color:${rs.bg}">
+      <div class="cocina-sub-header" style="background:${rs.bg}" onclick="toggleCocinaSubRubro(this)">
+        <div class="cocina-sub-icon" style="background:rgba(255,255,255,0.55);color:${rs.color}">${rs.icon}</div>
+        <div class="cocina-sub-info">
+          <span class="cocina-sub-nombre" style="color:${rs.color}">${g}</span>
+          <span class="cocina-sub-meta" style="color:${rs.color}">${n} receta${n !== 1 ? 's' : ''}</span>
+        </div>
+        <span class="cocina-sub-toggle" style="color:${rs.color}">▶</span>
+      </div>
+      <div class="cocina-sub-body">${innerHtml}</div>
     </div>`;
   }).join('');
 };
@@ -2195,6 +2719,21 @@ const CATEGORIAS_RECETA = [
   { id: 'limpieza',     label: 'Limpieza',                 icon: '🧹' },
   { id: 'otros',        label: 'Otros',                    icon: '📌' },
 ];
+
+const CAT_STYLES = {
+  'lacteos':      { bg:'#FFFBEB', color:'#92400E', border:'#FCD34D' },
+  'harinas':      { bg:'#FEF3C7', color:'#78350F', border:'#F59E0B' },
+  'aceites':      { bg:'#FFF7ED', color:'#C2410C', border:'#FDBA74' },
+  'azucares':     { bg:'#FDF2F8', color:'#9D174D', border:'#F9A8D4' },
+  'carnes':       { bg:'#FEF2F2', color:'#991B1B', border:'#FCA5A5' },
+  'frutas':       { bg:'#F0FDF4', color:'#166534', border:'#6EE7B7' },
+  'congelados':   { bg:'#EFF6FF', color:'#1E40AF', border:'#93C5FD' },
+  'especias':     { bg:'#FFF7ED', color:'#C2410C', border:'#FB923C' },
+  'bebidas':      { bg:'#EDE9FE', color:'#5B21B6', border:'#C4B5FD' },
+  'descartables': { bg:'#F0F9FF', color:'#0369A1', border:'#7DD3FC' },
+  'limpieza':     { bg:'#F0FDF4', color:'#15803D', border:'#86EFAC' },
+  'otros':        { bg:'#F8FAFC', color:'#475569', border:'#CBD5E1' },
+};
 
 // insumoCategories: { "pid_idx": "categoria_id" }
 let insumoCategories = {};
@@ -2237,12 +2776,16 @@ window.renderInsumos = () => {
   CATEGORIAS_RECETA.forEach(cat => {
     const items = filtered.filter(ins => ins.cat === cat.id);
 
+    const cs = CAT_STYLES[cat.id] || { bg:'#F0EDE8', color:'#6B6760', border:'#E2DDD8' };
     const card = document.createElement('div');
     card.className = 'ins-cat-card';
+    card.style.borderTopColor = cs.border;
     card.innerHTML = `
-      <div class="ins-cat-header">
-        <span class="ins-cat-title"><span class="ins-cat-icon">${cat.icon}</span>${cat.label}</span>
-        <span class="ins-cat-count">${items.length}</span>
+      <div class="ins-cat-header" style="background:${cs.bg}20" onclick="toggleInsCard(this)">
+        <div class="ins-cat-icon-badge" style="background:${cs.bg};color:${cs.color}">${cat.icon}</div>
+        <span class="ins-cat-title" style="color:${cs.color}">${cat.label}</span>
+        <span class="ins-cat-count" style="background:${cs.bg};color:${cs.color}">${items.length}</span>
+        <span class="ins-cat-toggle" style="color:${cs.color}">▶</span>
       </div>
       <div class="ins-list" id="inslist-${cat.id}">
         ${items.length === 0
@@ -2809,6 +3352,31 @@ function registerListeners() {
     if (snap.exists()) insumoCategories = snap.data();
     scheduleRerender();
   }));
+  // stockDeposito
+  snapUnsubs.push(onSnapshot(collection(db,'stock'), snap => {
+    stockDeposito = {};
+    snap.docs.forEach(d => { stockDeposito[d.id] = {id: d.id, ...d.data()}; });
+    updateDepositoBadge();
+    const view = document.querySelector('.nav-tab.active')?.dataset?.view;
+    if (view === 'deposito') renderDeposito();
+  }));
+  // aperturas
+  snapUnsubs.push(onSnapshot(
+    query(collection(db,'aperturas'), orderBy('fecha','desc'), limit(200)),
+    snap => {
+      aperturas = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      updateDepositoBadge();
+      const view = document.querySelector('.nav-tab.active')?.dataset?.view;
+      if (view === 'aperturas') renderAperturas();
+    }
+  ));
+  // stockProduccion
+  snapUnsubs.push(onSnapshot(collection(db,'stockProduccion'), snap => {
+    stockProduccion = {};
+    snap.docs.forEach(d => { stockProduccion[d.id] = {id: d.id, ...d.data()}; });
+    const view = document.querySelector('.nav-tab.active')?.dataset?.view;
+    if (view === 'deposito') renderDeposito();
+  }));
   // pedidosPendientes
   snapUnsubs.push(onSnapshot(
     query(collection(db,'pedidosPendientes'), orderBy('fechaPedido','desc')),
@@ -2869,6 +3437,7 @@ async function init() {
     registerListeners();
     // Refresh in background silently
     refreshFromFirebase();
+    Promise.all([loadMapaMaxirest(), loadVentas(), loadRecetas()]).then(() => buildRecetasMap());
     return;
   }
 
@@ -2893,6 +3462,8 @@ async function init() {
       loadInsumoCategories(),
       loadPedidosPendientes(),
       loadProviderConfig(),
+      loadMapaMaxirest(),
+      loadVentas(),
     ]);
     saveToCache();
   } catch(e) { console.warn('Firebase offline, using local mode'); }
@@ -2943,6 +3514,7 @@ async function refreshFromFirebase(silent = true) {
 // SWITCH VIEW — solo muestra la vista, sin refrescar datos
 window.switchView = (view) => {
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));
+  const hb = document.getElementById('histBtn'); if(hb) hb.classList.toggle('active', view==='historial');
   document.getElementById('viewPedidos').style.display   = view==='pedidos'   ?'block':'none';
   document.getElementById('viewPrecios').style.display   = view==='precios'   ?'block':'none';
   document.getElementById('viewHistorial').style.display = view==='historial' ?'block':'none';
@@ -2951,6 +3523,8 @@ window.switchView = (view) => {
   document.getElementById('viewPendientes').style.display= view==='pendientes'?'block':'none';
   document.getElementById('viewPagos').style.display     = view==='pagos'     ?'block':'none';
   document.getElementById('viewVentas').style.display    = view==='ventas'    ?'block':'none';
+  document.getElementById('viewDeposito').style.display  = view==='deposito'  ?'block':'none';
+  document.getElementById('viewAperturas').style.display = view==='aperturas' ?'block':'none';
   document.getElementById('summaryBar').style.display    = view==='pedidos'   ?''     :'none';
   if(view==='historial') renderHistorial();
   if(view==='recetas') renderRecetas();
@@ -2958,24 +3532,39 @@ window.switchView = (view) => {
   if(view==='pendientes') renderPendientes();
   if(view==='pagos') renderPagos();
   if(view==='ventas') { buildRecetasMap(); loadVentas().then(() => renderVentas()); }
+  if(view==='deposito') renderDeposito();
+  if(view==='aperturas') renderAperturas();
 };
 
 // FILTER BAR
 function buildFilterBar() {
   const fb=document.getElementById('filterBar');
-  // Keep only the "Todos" button
   while (fb.children.length > 1) fb.removeChild(fb.lastChild);
   [...new Set(PROVIDERS.map(p=>p.cat))].forEach(cat=>{
-    if (fb.querySelector(`[data-filter="${cat}"]`)) return; // skip duplicates
+    if (fb.querySelector(`[data-filter="${cat}"]`)) return;
+    const cs = PROV_CAT_STYLES[cat] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
     const btn=document.createElement('button');
     btn.className='filter-btn'; btn.dataset.filter=cat;
-    btn.textContent=CATS[cat]||cat;
+    btn.style.background=cs.bg; btn.style.color=cs.color; btn.style.borderColor=cs.bg;
+    btn.innerHTML=`${cs.icon} ${CATS[cat]||cat}`;
     btn.onclick=()=>setFilter(cat);
     fb.appendChild(btn);
   });
 }
 window.setFilter=(f)=>{
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  document.querySelectorAll('.filter-btn').forEach(b=>{
+    const isActive = b.dataset.filter===f;
+    b.classList.toggle('active',isActive);
+    if (isActive) {
+      if (f==='all') { b.style.background='var(--ink)'; b.style.color='#fff'; b.style.borderColor='var(--ink)'; }
+      else { const cs=PROV_CAT_STYLES[f]||{color:'var(--ink)'}; b.style.background=cs.color; b.style.color='#fff'; b.style.borderColor=cs.color; }
+    } else if (b.dataset.filter==='all') {
+      b.style.background=''; b.style.color=''; b.style.borderColor='';
+    } else {
+      const cs=PROV_CAT_STYLES[b.dataset.filter]||{bg:'#F0EDE8',color:'#6B6760'};
+      b.style.background=cs.bg; b.style.color=cs.color; b.style.borderColor=cs.bg;
+    }
+  });
   document.querySelectorAll('.provider-card').forEach(c=>c.style.display=(f==='all'||c.dataset.cat===f)?'':'none');
 };
 
@@ -2986,29 +3575,38 @@ function buildCards() {
   PROVIDERS.forEach(p=>{
     const telChip=p.tel?`<a class="chip chip-tel" href="tel:+54${p.tel.replace(/\D/g,'')}">📞 ${fmtTel(p.tel)}</a>`:`<span class="chip chip-notel">Sin teléfono</span>`;
     const pagoChip=`<span class="${PAGO_CHIP[p.pago]}">${PAGO_LABEL[p.pago]}</span>`;
+    const pcs = PROV_CAT_STYLES[p.cat] || { color:'#6B6760' };
     const card=document.createElement('div');
     card.className='provider-card'; card.dataset.cat=p.cat; card.id='card-'+p.id;
+    card.style.borderTopWidth='3px'; card.style.borderTopColor=pcs.color;
     card.innerHTML=`
-      <div class="card-header">
-        <div class="card-header-top">
-          <span class="card-title">${p.name}</span>
-          <span class="card-count" id="count-${p.id}">${p.products.length} productos</span>
+      <div class="card-header" onclick="toggleProvCard(this)">
+        <div class="card-cat-badge" style="background:${pcs.bg||'var(--surface2)'};color:${pcs.color}">${pcs.icon||'📦'}</div>
+        <div class="card-header-info">
+          <div class="card-header-top">
+            <span class="card-title">${p.name}</span>
+            <span class="card-count" id="count-${p.id}">${p.products.length} productos</span>
+          </div>
+          <div class="card-contact">${telChip}${pagoChip}</div>
         </div>
-        <div class="card-contact">${telChip}${pagoChip}</div>
+        <span class="card-toggle">▶</span>
       </div>
-      <div class="product-list">
-        ${p.products.map((prod,i)=>`
-          <div class="product-row" id="row-${p.id}-${i}">
-            <span class="product-name">${prod}</span>
-            <span class="product-price ${prices[key(p.id,i)]?'has-price':''}" id="pp-${p.id}-${i}">${fmtPrice(prices[key(p.id,i)])}</span>
-            <div class="qty-stepper" id="stepper-${p.id}-${i}">
-              <button class="qty-btn minus" onclick="stepQty('${p.id}',${i},-1)">−</button>
-              <span class="qty-display" id="qdisp-${p.id}-${i}">—</span>
-              <button class="qty-btn plus" onclick="stepQty('${p.id}',${i},1)">+</button>
-            </div>
-          </div>`).join('')}
+      <div class="card-body">
+        <div class="product-list">
+          ${p.products.map((prod,i)=>`
+            <div class="product-row" id="row-${p.id}-${i}">
+              <span class="product-name">${prod}</span>
+              <span class="product-price ${prices[key(p.id,i)]?'has-price':''}" id="pp-${p.id}-${i}">${fmtPrice(prices[key(p.id,i)])}</span>
+              <div class="qty-stepper" id="stepper-${p.id}-${i}">
+                <button class="qty-btn minus" onclick="stepQty('${p.id}',${i},-1)">−</button>
+                <span class="qty-display" id="qdisp-${p.id}-${i}">—</span>
+                <button class="qty-btn plus" onclick="stepQty('${p.id}',${i},1)">+</button>
+              </div>
+            </div>`).join('')}
+        </div>
       </div>`;
     // Footer via DOM puro para garantizar ids correctos
+    const cardBody = card.querySelector('.card-body');
     const footer = document.createElement('div');
     footer.className = 'card-footer';
     const totalDiv = document.createElement('div');
@@ -3025,10 +3623,18 @@ function buildCards() {
       </button>`;
     footer.appendChild(totalDiv);
     footer.appendChild(btnsDiv);
-    card.appendChild(footer);
+    cardBody.appendChild(footer);
     container.appendChild(card);
   });
 }
+
+window.toggleProvCard = (header) => {
+  const body = header.nextElementSibling;
+  const tog = header.querySelector('.card-toggle');
+  const open = body.classList.toggle('open');
+  header.classList.toggle('open', open);
+  tog.classList.toggle('open', open);
+};
 
 window.stepQty=(pid,idx,delta)=>{
   const current = state[pid][idx] || 0;
@@ -3159,6 +3765,159 @@ function fmtRangoFecha(inicio, fin) {
   const fmt = d => { const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; };
   return inicio === fin ? fmt(inicio) : `${fmt(inicio)} – ${fmt(fin)}`;
 }
+
+/* AUDITORIA COBERTURA */
+window.abrirAuditoriaRecetas = async () => {
+  await loadMapaMaxirest();
+  const RUBRO_EXCLUIDO = 'jugos y licuados';
+  const ORDEN = ['Pastas','Desayunos y Meriendas','Cafetería','Cocina','Pastelería','Menú del Día','Panadería'];
+  const seen = new Set();
+  const byRubro = {};
+  ventasData.forEach(v => {
+    (v.items || []).forEach(it => {
+      const codigo = String(it.codigoMaxirest || '').trim();
+      if (!codigo || seen.has(codigo)) return;
+      seen.add(codigo);
+      const rubro = normalizeRubro(it.rubro);
+      if (!rubro || rubro.toLowerCase().includes(RUBRO_EXCLUIDO)) return;
+      if (!byRubro[rubro]) byRubro[rubro] = [];
+      const mapa = mapaMaxirestCache[codigo];
+      const recetaId = mapa?.recetaId || null;
+      const receta = recetaId ? recetasMap[recetaId] : null;
+      byRubro[rubro].push({ codigo, nombre: String(it.nombreMaxirest || '').trim(), recetaId, recetaNombre: receta?.nombre || null });
+    });
+  });
+  const rubros = [...ORDEN.filter(r => byRubro[r]), ...Object.keys(byRubro).filter(r => !ORDEN.includes(r)).sort()];
+  let totalOk = 0, totalErr = 0;
+  const html = rubros.map(rubro => {
+    const prods = byRubro[rubro];
+    const ok = prods.filter(p => p.recetaNombre).length;
+    const err = prods.length - ok;
+    totalOk += ok; totalErr += err;
+    const rows = prods.map(p => `
+      <div class="audit-prod-row">
+        <span class="${p.recetaNombre ? 'audit-icon-ok' : 'audit-icon-err'}">${p.recetaNombre ? '✓' : '✗'}</span>
+        <span class="audit-prod-nombre">${p.nombre}</span>
+        <span class="audit-prod-receta">${p.recetaNombre || 'sin receta'}</span>
+      </div>`).join('');
+    return `<div class="audit-rubro">
+      <div class="audit-rubro-header">
+        <span class="audit-rubro-name">${rubro}</span>
+        ${ok ? `<span class="audit-badge-ok">✓ ${ok}</span>` : ''}
+        ${err ? `<span class="audit-badge-err">✗ ${err} sin receta</span>` : ''}
+      </div>${rows}</div>`;
+  }).join('');
+  document.getElementById('auditoriaBody').innerHTML = html ||
+    `<div style="padding:40px;text-align:center;color:var(--ink3)">No hay importaciones cargadas</div>`;
+  document.getElementById('auditoriaOverlay').classList.add('open');
+};
+
+window.cerrarAuditoriaYAbrirWizard = () => {
+  document.getElementById('auditoriaOverlay').classList.remove('open');
+  abrirWizardRecetas();
+};
+
+/* WIZARD CREAR RECETAS */
+window.abrirWizardRecetas = async () => {
+  await loadMapaMaxirest();
+  const RUBRO_EXCLUIDO = 'jugos y licuados';
+  const ORDEN_RUBROS = ['Pastas','Desayunos y Meriendas','Cafetería','Wraps','Ensaladas','Pastelería','Tartas','Menú del Día','Panadería'];
+  const seen = new Set();
+  const byRubro = {};
+  ventasData.forEach(v => {
+    (v.items || []).forEach(it => {
+      const codigo = String(it.codigoMaxirest || '').trim();
+      if (!codigo || seen.has(codigo)) return;
+      seen.add(codigo);
+      const rubro = normalizeRubro(it.rubro);
+      if (!rubro || rubro.toLowerCase().includes(RUBRO_EXCLUIDO)) return;
+      const mapa = mapaMaxirestCache[codigo];
+      if (mapa?.recetaId && recetasMap[mapa.recetaId]) return;
+      if (!byRubro[rubro]) byRubro[rubro] = [];
+      byRubro[rubro].push({ codigo, nombre: String(it.nombreMaxirest || '').trim(), rubro });
+    });
+  });
+  const rubros = [];
+  ORDEN_RUBROS.forEach(r => { if (byRubro[r]) rubros.push(r); });
+  Object.keys(byRubro).forEach(r => { if (!ORDEN_RUBROS.includes(r)) rubros.push(r); });
+  if (!rubros.length) { showToast('Todos los productos ya tienen receta'); return; }
+  const container = document.getElementById('wizardRubroList');
+  container.innerHTML = rubros.map((rubro, ri) => {
+    const prods = byRubro[rubro];
+    const rows = prods.map(p => `
+      <label class="wiz-prod-row" onclick="event.stopPropagation()">
+        <input type="checkbox" id="wiz_${p.codigo}" value="${p.codigo}" data-nombre="${p.nombre}" data-rubro="${rubro}" onchange="wizardActualizarCounter()">
+        <span class="wiz-prod-nombre">${p.nombre}</span>
+        <span class="wiz-prod-codigo">${p.codigo}</span>
+      </label>`).join('');
+    const ws = RUBRO_STYLES[rubro] || { bg:'#F0EDE8', color:'#6B6760', icon:'📋' };
+    return `<div class="wiz-rubro-section">
+      <div class="wiz-rubro-header" onclick="wizardToggleRubro(${ri})" style="border-left:3px solid ${ws.color}20">
+        <span class="wiz-rubro-toggle" id="wiztog_${ri}" style="color:${ws.color}">▶</span>
+        <span style="font-size:15px;line-height:1;flex-shrink:0">${ws.icon}</span>
+        <span class="wiz-rubro-name" style="color:${ws.color}">${rubro}</span>
+        <span class="wiz-rubro-count">${prods.length} productos</span>
+        <div class="wiz-rubro-actions" onclick="event.stopPropagation()">
+          <button class="wiz-rubro-btn" onclick="wizardSelTodos('${rubro}',true)">Todos</button>
+          <button class="wiz-rubro-btn" onclick="wizardSelTodos('${rubro}',false)">Ninguno</button>
+        </div>
+      </div>
+      <div class="wiz-prod-list" id="wizlist_${ri}">${rows}</div>
+    </div>`;
+  }).join('');
+  wizardActualizarCounter();
+  document.getElementById('recetaWizardOverlay').classList.add('open');
+};
+
+window.wizardToggleRubro = (ri) => {
+  const list = document.getElementById(`wizlist_${ri}`);
+  const tog = document.getElementById(`wiztog_${ri}`);
+  const open = list.classList.toggle('open');
+  tog.classList.toggle('open', open);
+};
+
+window.wizardSelTodos = (rubro, val) => {
+  document.querySelectorAll(`#wizardRubroList input[data-rubro="${rubro}"]`).forEach(cb => { cb.checked = val; });
+  wizardActualizarCounter();
+};
+
+window.wizardActualizarCounter = () => {
+  const n = document.querySelectorAll('#wizardRubroList input:checked').length;
+  document.getElementById('wizardSelCounter').textContent = `${n} seleccionado${n !== 1 ? 's' : ''}`;
+};
+
+window.wizardConfirmar = async () => {
+  const checks = [...document.querySelectorAll('#wizardRubroList input:checked')];
+  if (!checks.length) { showToast('Seleccioná al menos un producto'); return; }
+  let creados = 0, errores = 0;
+  for (const cb of checks) {
+    const codigo = cb.value;
+    const nombre = cb.dataset.nombre;
+    try {
+      const ref = await addDoc(collection(db, 'recetas'), {
+        nombre,
+        insumos: [],
+        creadaDesdeVentas: true,
+        creadaEn: serverTimestamp()
+      });
+      recetasMap[ref.id] = { id: ref.id, nombre, insumos: [] };
+      await setDoc(doc(db, 'mapaMaxirest', codigo), {
+        nombreMaxirest: nombre,
+        recetaId: ref.id,
+        confirmadoPor: currentUser.email,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      mapaMaxirestCache[codigo] = { nombreMaxirest: nombre, recetaId: ref.id };
+      creados++;
+    } catch(e) { errores++; console.error(e); }
+  }
+  cerrarWizardRecetas();
+  showToast(`✓ ${creados} receta${creados !== 1 ? 's' : ''} creada${creados !== 1 ? 's' : ''}${errores ? ` (${errores} errores)` : ''}`);
+};
+
+window.cerrarWizardRecetas = () => {
+  document.getElementById('recetaWizardOverlay').classList.remove('open');
+};
 
 function ventasGetFiltered() {
   const desde = document.getElementById('ventasDesde')?.value;
@@ -3305,15 +4064,19 @@ function renderAnalyticsRubros(filtered) {
   const rubroCards = stats.map(r => {
     const slug = r.rubro.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     const barPct = Math.round((r.ingresos / maxIngresos) * 100);
-    return `<div class="rubro-card" onclick="toggleRubroDetalle('${slug}')">
-      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">${r.rubro}</div>
+    const rs = RUBRO_STYLES[r.rubro] || { bg:'#F0EDE8', color:'#6B6760', icon:'📊' };
+    return `<div class="rubro-card" style="border-top-color:${rs.color}" onclick="toggleRubroDetalle('${slug}')">
+      <div class="rubro-card-header">
+        <div class="rubro-card-icon" style="background:${rs.bg};color:${rs.color}">${rs.icon}</div>
+        <span style="font-size:13px;font-weight:700;color:${rs.color}">${r.rubro}</span>
+      </div>
       <div style="font-size:11px;color:var(--ink2);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px">
         <span>Ingresos: <b style="color:var(--ink)">${fmt$(r.ingresos)}</b></span>
         <span>Ganancia: <b style="color:var(--accent)">${fmt$(r.ganancia)}</b></span>
         <span>Margen: <b style="color:var(--accent)">${fmtPct(r.margenPct)}</b></span>
         <span>Unidades: <b style="color:var(--ink)">${r.unidades}</b></span>
       </div>
-      <div class="rubro-card-bar"><div class="rubro-card-bar-fill" style="width:${barPct}%"></div></div>
+      <div class="rubro-card-bar"><div class="rubro-card-bar-fill" style="width:${barPct}%;background:${rs.color}"></div></div>
     </div>`;
   }).join('');
 
@@ -3324,12 +4087,17 @@ function renderAnalyticsRubros(filtered) {
   const maxM = Math.max(...byMargen.map(r => r.margenPct), 1);
   const maxU = Math.max(...byUnidades.map(r => r.unidades), 1);
 
-  const rankCol = (items, valFn, fmtFn) => items.map(r =>
-    `<div class="ranking-item">
-      <div style="font-size:12px;font-weight:500;margin-bottom:4px">${r.rubro}</div>
-      <div class="ranking-bar"><div class="ranking-bar-fill" style="width:${Math.round((valFn(r)/Math.max(...items.map(valFn),1))*100)}%"></div></div>
+  const rankCol = (items, valFn, fmtFn) => items.map(r => {
+    const rs = RUBRO_STYLES[r.rubro] || { bg:'#F0EDE8', color:'#6B6760', icon:'📊' };
+    return `<div class="ranking-item">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span style="font-size:13px">${rs.icon}</span>
+        <span style="font-size:12px;font-weight:600;color:${rs.color}">${r.rubro}</span>
+      </div>
+      <div class="ranking-bar"><div class="ranking-bar-fill" style="width:${Math.round((valFn(r)/Math.max(...items.map(valFn),1))*100)}%;background:${rs.color}"></div></div>
       <div style="font-size:11px;color:var(--ink2);margin-top:2px">${fmtFn(r)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const { periodos, rows, maxVal } = calcRubroComparativa(filtered);
   let comparativaHtml = '';
@@ -3344,7 +4112,8 @@ function renderAnalyticsRubros(filtered) {
         const bg = `background:hsl(152,55%,${Math.round(95 - pct * 40)}%)`;
         return `<td class="heatmap-cell" style="${bg}">${fmt$(val)}</td>`;
       }).join('');
-      return `<tr><td style="padding:6px 10px;font-size:12px;font-weight:500">${row.rubro}</td>${cells}</tr>`;
+      const rs2 = RUBRO_STYLES[row.rubro] || { icon:'📊', color:'#6B6760' };
+      return `<tr><td style="padding:6px 10px;font-size:12px;font-weight:500;color:${rs2.color}">${rs2.icon} ${row.rubro}</td>${cells}</tr>`;
     }).join('');
     comparativaHtml = `<div style="overflow-x:auto"><table class="heatmap-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
   }
@@ -3446,9 +4215,11 @@ window.renderPagos = () => {
         <button class="btn-del-pend" onclick="eliminarPago('${p.id}')" style="font-size:11px;padding:4px 10px">🗑</button>
       </div>`;
 
-    return `<div class="pago-card ${est}" id="pagocard-${p.id}">
+    const provPcs = (() => { const pr = PROVIDERS.find(x => x.id === p.provId); return PROV_CAT_STYLES[pr?.cat] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' }; })();
+    return `<div class="pago-card ${est}" id="pagocard-${p.id}" style="border-top-width:3px;border-top-color:${provPcs.color}">
       ${warn}
       <div class="pago-card-row">
+        <div class="pagos-prov-badge" style="background:${provPcs.bg};color:${provPcs.color};flex-shrink:0">${provPcs.icon}</div>
         <div class="pago-card-info">
           <div class="pago-card-titulo">${modoAcordeon?'':p.provName+' · '}${p.items?.length||0} productos</div>
           <div class="pago-card-fechas">Pedido: ${pedStr} · Entrega: ${entStr} · Recibido: ${recStr}${vencStr&&!p.pago?.pagado?` · Vence: ${vencStr}`:''}</div>
@@ -3475,7 +4246,7 @@ window.renderPagos = () => {
   if (pagados.length) {
     const porProv = {};
     pagados.forEach(p => {
-      if (!porProv[p.provId]) porProv[p.provId] = { provName: p.provName, items: [] };
+      if (!porProv[p.provId]) porProv[p.provId] = { provId: p.provId, provName: p.provName, items: [] };
       porProv[p.provId].items.push(p);
     });
     const provsSorted = Object.values(porProv).sort((a,b) => a.provName.localeCompare(b.provName,'es',{sensitivity:'base'}));
@@ -3487,16 +4258,20 @@ window.renderPagos = () => {
       <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">✅ Historial pagado</div>
       ${provsSorted.map(prov => {
         const totalProv = prov.items.reduce((a,p) => a+(p.pago?.monto||0), 0);
-        return `<div class="pagos-prov-block">
-          <div class="pagos-prov-header" style="cursor:pointer" onclick="toggleProvPagos('${prov.provName.replace(/'/g,"\\'")}')">
-            <span>${prov.provName}</span>
-            <div style="display:flex;align-items:center;gap:8px">
+        const provData = PROVIDERS.find(pr => pr.id === prov.provId);
+        const pcs = PROV_CAT_STYLES[provData?.cat] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
+        const safeId = prov.provName.replace(/[\s']/g,'-');
+        return `<div class="pagos-prov-block" style="border-top-width:3px;border-top-color:${pcs.color}">
+          <div class="pagos-prov-header" onclick="toggleProvPagos('${safeId}')">
+            <div class="pagos-prov-badge" style="background:${pcs.bg};color:${pcs.color}">${pcs.icon}</div>
+            <div class="pagos-prov-info">
+              <div style="font-size:13px;font-weight:700;color:var(--ink)">${prov.provName}</div>
               <span class="pagos-prov-stats">${prov.items.length} pagos · $${Math.round(totalProv).toLocaleString('es-AR')}</span>
-              <button class="btn-stats-prov" onclick="event.stopPropagation();verEstadisticasProv('${prov.provName.replace(/'/g,"\\'")}')">📊</button>
-              <span id="chevron-${prov.provName.replace(/\s/g,'-')}" style="font-size:11px;color:var(--ink3);transition:transform 0.2s">▼</span>
             </div>
+            <button class="btn-stats-prov" onclick="event.stopPropagation();verEstadisticasProv('${prov.provName.replace(/'/g,"\\'")}')">📊</button>
+            <span id="chevron-${safeId}" style="font-size:10px;color:var(--ink3);transition:transform 0.2s;flex-shrink:0">▶</span>
           </div>
-          <div id="provpagos-${prov.provName.replace(/\s/g,'-')}" style="display:none">
+          <div class="pagos-prov-body" id="provpagos-${safeId}">
             ${prov.items.map(p => renderItemPago(p, true)).join('')}
           </div>
         </div>`;
@@ -3507,14 +4282,14 @@ window.renderPagos = () => {
   list.innerHTML = html || `<div class="pend-empty"><div class="pend-empty-icon">💳</div>No hay pagos todavía.</div>`;
 };
 
-window.toggleProvPagos = (provName) => {
-  const key = provName.replace(/\s/g,'-');
-  const body = document.getElementById(`provpagos-${key}`);
-  const chev = document.getElementById(`chevron-${key}`);
+window.toggleProvPagos = (safeId) => {
+  const body = document.getElementById(`provpagos-${safeId}`);
+  const chev = document.getElementById(`chevron-${safeId}`);
   if (!body) return;
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+  const open = body.classList.toggle('open');
+  const header = body.previousElementSibling;
+  if (header) header.classList.toggle('open', open);
+  if (chev) chev.style.transform = open ? 'rotate(90deg)' : '';
 };
 
 window.marcarPagadoDesde = async (id) => {
@@ -3630,11 +4405,13 @@ async function guardarPedidoPendiente(pid) {
   if (!items.length) return;
   const condPago = p.condPago || 'contado';
   const medio = p.pago === 'efectivo' ? 'efectivo' : 'transfer';
+  const monto = Object.entries(state[pid]).reduce((sum, [idx, qty]) => sum + ((prices[key(pid, parseInt(idx))] || 0) * qty), 0);
   const pedido = {
     provId: pid,
     provName: p.name,
     provTel: p.tel || '',
     items,
+    monto,
     fechaPedido: serverTimestamp(),
     fechaEntrega: null,
     estado: 'pendiente',
@@ -3650,10 +4427,12 @@ async function guardarPedidoPendiente(pid) {
 
 window.renderPendientes = () => {
   const list = document.getElementById('pendList');
+  const totalBar = document.getElementById('pendTotalBar');
   const conFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && p.fechaEntrega);
   const sinFecha = pedidosPendientes.filter(p => p.estado !== 'recibido' && !p.fechaEntrega);
 
   if (!conFecha.length && !sinFecha.length) {
+    totalBar.style.display = 'none';
     list.innerHTML = `<div class="pend-empty"><div class="pend-empty-icon">🚚</div>No hay pedidos pendientes de entrega.<br>Los pedidos enviados por WhatsApp aparecerán acá.</div>`;
     updatePagosBadge();
     return;
@@ -3666,11 +4445,48 @@ window.renderPendientes = () => {
     return fa - fb;
   });
 
+  const todos = [...conFecha, ...sinFecha];
+  const totalMonto = todos.reduce((s, p) => s + (Number(p.monto) || 0), 0);
+  const vencidos = todos.filter(p => {
+    if (!p.fechaEntrega) return false;
+    const hoyD = new Date(); hoyD.setHours(0,0,0,0);
+    const [y,m,d] = p.fechaEntrega.split('-');
+    return new Date(y,m-1,d) < hoyD;
+  }).length;
+
+  totalBar.style.display = '';
+  totalBar.innerHTML = `<div class="pend-total-bar">
+    <div>
+      <div class="pend-total-label">Total pendiente de pago</div>
+      <div class="pend-total-value">${totalMonto > 0 ? '$' + totalMonto.toLocaleString('es-AR') : '—'}</div>
+      <div class="pend-total-meta">${todos.length} pedido${todos.length!==1?'s':''} · ${vencidos > 0 ? `⚠️ ${vencidos} vencido${vencidos!==1?'s':''}` : '✓ Sin vencidos'}</div>
+    </div>
+    <div style="font-size:32px">🚚</div>
+  </div>`;
+
+  const hoyStr = new Date().toISOString().split('T')[0];
+
   const renderCard = (p) => {
     const fecha = p.fechaPedido?.toDate ? p.fechaPedido.toDate() : new Date();
     const fechaStr = fecha.toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
     const isRecibido = p.estado === 'recibido';
-    const sinFechaEntrega = !isRecibido && !p.fechaEntrega;
+
+    // Days badge
+    let diasBadge = '';
+    if (!isRecibido) {
+      if (!p.fechaEntrega) {
+        diasBadge = `<span class="pend-dias-badge sin-fecha">📅 Sin fecha</span>`;
+      } else {
+        const hoyD = new Date(); hoyD.setHours(0,0,0,0);
+        const [y,m,d] = p.fechaEntrega.split('-');
+        const entrega = new Date(y,m-1,d);
+        const diff = Math.round((entrega - hoyD) / (1000*60*60*24));
+        if (diff < 0) diasBadge = `<span class="pend-dias-badge vencido">🔴 Vencido ${Math.abs(diff)}d</span>`;
+        else if (diff === 0) diasBadge = `<span class="pend-dias-badge hoy">🟡 Hoy</span>`;
+        else if (diff <= 3) diasBadge = `<span class="pend-dias-badge urgente">⚠️ ${diff}d</span>`;
+        else diasBadge = `<span class="pend-dias-badge ok">📅 ${diff}d</span>`;
+      }
+    }
 
     let fechaEntregaStr = '';
     if (p.fechaEntrega) {
@@ -3678,17 +4494,14 @@ window.renderPendientes = () => {
       fechaEntregaStr = new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
     }
 
-    // Panel de pago para recibidos
     let pagoPanel = '';
     if (isRecibido) {
       const pago = p.pago || {};
-      const hoy = new Date().toISOString().split('T')[0];
       const venc = pago.vencimiento || '';
-      const vencClass = !venc ? 'contado' : venc < hoy ? 'vencido' : venc === hoy ? 'hoy' : 'ok';
+      const vencClass = !venc ? 'contado' : venc < hoyStr ? 'vencido' : venc === hoyStr ? 'hoy' : 'ok';
       const vencLabel = !venc || pago.condicion === 'contado' ? 'Contado' :
         new Date(venc+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'});
       const recepFecha = p.fechaRecepcion ? new Date(p.fechaRecepcion).toLocaleString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-
       pagoPanel = `<div class="pend-pago-panel">
         <div class="pend-pago-title">💳 Pago</div>
         ${recepFecha ? `<div class="pend-recepcion-fecha">Recibido: ${recepFecha}</div>` : ''}
@@ -3712,20 +4525,27 @@ window.renderPendientes = () => {
       </div>`;
     }
 
-    return `<div class="pend-card ${isRecibido ? 'recibido' : ''}" id="pend-${p.id}">
-      <div class="pend-card-header">
-        <div class="pend-card-dot ${isRecibido ? 'recibido' : ''}"></div>
+    const provData = PROVIDERS.find(x => x.id === p.provId);
+    const pcs = PROV_CAT_STYLES[provData?.cat] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
+    return `<div class="pend-card ${isRecibido ? 'recibido' : ''}" id="pend-${p.id}" style="border-top-width:3px;border-top-color:${pcs.color}">
+      <div class="pend-card-header" onclick="togglePendCard(this)">
+        <div class="card-cat-badge" style="background:${pcs.bg};color:${pcs.color};flex-shrink:0">${pcs.icon}</div>
         <div class="pend-card-info">
           <div class="pend-card-prov">${p.provName}</div>
           <div class="pend-card-fecha">Pedido: ${fechaStr}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        ${diasBadge}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px" onclick="event.stopPropagation()">
+          <input class="pend-monto-inp" type="number" placeholder="$ monto"
+            value="${p.monto || ''}"
+            onchange="guardarMontoPedido('${p.id}', this.value)"
+            title="Monto pactado">
           <span class="pend-card-status ${p.estado}">${isRecibido ? '✅ Recibido' : '⏳ Pendiente'}</span>
-          ${p.fechaEntrega ? `<span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent)">📅 ${fechaEntregaStr}</span>` : ''}
         </div>
+        <span class="pend-card-toggle">▶</span>
       </div>
-      ${sinFechaEntrega ? `<div style="background:#FEF3C7;padding:7px 18px;font-size:12px;color:#92400E;display:flex;align-items:center;gap:6px">⚠️ Falta cargar fecha de entrega</div>` : ''}
       <div class="pend-card-body">
+        ${!isRecibido && !p.fechaEntrega ? `<div style="background:#FEF3C7;padding:7px 12px;font-size:12px;color:#92400E;border-radius:8px;display:flex;align-items:center;gap:6px">⚠️ Falta cargar fecha de entrega</div>` : ''}
         <div class="pend-items">
           ${p.items.map(it => `
             <div class="pend-item">
@@ -3748,10 +4568,24 @@ window.renderPendientes = () => {
     </div>`;
   };
 
-  let html = [...conFecha, ...sinFecha].map(renderCard).join('');
-
-  list.innerHTML = html;
+  list.innerHTML = todos.map(renderCard).join('');
   updatePagosBadge();
+};
+
+window.togglePendCard = (header) => {
+  const body = header.nextElementSibling;
+  const tog = header.querySelector('.pend-card-toggle');
+  const open = body.classList.toggle('open');
+  header.classList.toggle('open', open);
+  tog.classList.toggle('open', open);
+};
+
+window.guardarMontoPedido = async (id, valor) => {
+  const p = pedidosPendientes.find(x => x.id === id);
+  if (!p) return;
+  p.monto = Number(valor) || 0;
+  try { await setDoc(doc(db,'pedidosPendientes',id), {monto: p.monto}, {merge:true}); } catch(e) {}
+  renderPendientes();
 };
 
 window.guardarFechaEntrega = async (id, fecha) => {
@@ -3786,7 +4620,25 @@ window.marcarRecibido = async (id) => {
       fechaRecepcion: serverTimestamp(),
       pago: p.pago
     }, {merge:true});
-  } catch(e) {}
+    // Ingresar items al stock depósito
+    const {increment: fsIncrement} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    for (const item of p.items) {
+      const idx = prov?.products?.indexOf(item.nombre) ?? -1;
+      if (idx < 0) continue;
+      const k = key(p.provId, idx);
+      const pres = presentations[k];
+      await setDoc(doc(db,'stock',k), {
+        provId: p.provId, idx,
+        nombre: item.nombre,
+        provName: p.provName,
+        cat: prov?.cat || 'otros',
+        cantidad: fsIncrement(item.cantidad),
+        unidad: pres?.unit || 'u',
+        qty: pres?.qty || 1,
+        ultimaEntrada: serverTimestamp(),
+      }, {merge:true});
+    }
+  } catch(e) { console.error(e); }
   showToast(`✓ Pedido de ${p.provName} marcado como recibido`);
   renderPendientes();
   updatePagosBadge();
@@ -3825,9 +4677,235 @@ window.desmarcarRecibido = async (id) => {
   const p = pedidosPendientes.find(x => x.id === id);
   if (!p) return;
   p.estado = 'pendiente';
-  try { await setDoc(doc(db,'pedidosPendientes',id), {estado:'pendiente'}, {merge:true}); } catch(e) {}
+  try {
+    await setDoc(doc(db,'pedidosPendientes',id), {estado:'pendiente'}, {merge:true});
+    // Revertir stock depósito
+    const {increment: fsIncrement} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const prov = PROVIDERS.find(x => x.id === p.provId);
+    for (const item of p.items) {
+      const idx = prov?.products?.indexOf(item.nombre) ?? -1;
+      if (idx < 0) continue;
+      const k = key(p.provId, idx);
+      await setDoc(doc(db,'stock',k), { cantidad: fsIncrement(-item.cantidad) }, {merge:true});
+    }
+  } catch(e) { console.error(e); }
   showToast(`↩ Pedido de ${p.provName} vuelto a pendiente`);
   renderPendientes();
+};
+
+// ── DEPÓSITO Y APERTURAS ──
+
+function updateDepositoBadge() {
+  const bajo = Object.values(stockDeposito).filter(s => s.cantidad > 0 && s.cantidad <= 1).length;
+  const badge = document.getElementById('deposito-badge');
+  if (!badge) return;
+  badge.style.display = bajo > 0 ? '' : 'none';
+  badge.textContent = bajo;
+}
+
+window.renderAperturas = () => {
+  const list = document.getElementById('aperturaslist');
+  const filters = document.getElementById('aperturasFilters');
+  if (!list) return;
+
+  if (!aperturas.length) {
+    if (filters) filters.innerHTML = '';
+    list.innerHTML = `<div class="dep-empty"><div class="dep-empty-icon">🔓</div>No hay aperturas registradas todavía.</div>`;
+    return;
+  }
+
+  // Filtros por categoría
+  const cats = [...new Set(aperturas.map(a => a.cat || 'otros'))];
+  let filtroAp = filters?.dataset?.filtro || 'todos';
+  if (filters) {
+    filters.innerHTML = `<button class="filter-btn ${filtroAp==='todos'?'active':''}" onclick="setFiltroAp('todos',this)">Todos</button>` +
+      cats.map(c => {
+        const pcs = PROV_CAT_STYLES[c] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
+        return `<button class="filter-btn ${filtroAp===c?'active':''}" onclick="setFiltroAp('${c}',this)" style="background:${filtroAp===c?pcs.color:pcs.bg};color:${filtroAp===c?'#fff':pcs.color};border-color:${pcs.color}">${pcs.icon} ${CATS[c]||c}</button>`;
+      }).join('');
+    filters.dataset.filtro = filtroAp;
+  }
+
+  const visibles = filtroAp === 'todos' ? aperturas : aperturas.filter(a => (a.cat||'otros') === filtroAp);
+
+  list.innerHTML = visibles.map(a => {
+    const pcs = PROV_CAT_STYLES[a.cat||'otros'] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
+    const fecha = a.fecha?.toDate ? a.fecha.toDate() : new Date();
+    const fechaStr = fecha.toLocaleString('es-AR', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+    const cantDisplay = a.unidadBase === 'g' && a.cantBase >= 1000
+      ? `${(a.cantBase/1000).toFixed(2)} kg`
+      : a.unidadBase === 'ml' && a.cantBase >= 1000
+      ? `${(a.cantBase/1000).toFixed(2)} L`
+      : `${Math.round(a.cantBase)} ${a.unidadBase}`;
+    return `<div class="ap-item" style="border-top:3px solid ${pcs.color}">
+      <div class="card-cat-badge" style="background:${pcs.bg};color:${pcs.color}">${pcs.icon}</div>
+      <div class="ap-item-info">
+        <div class="ap-item-nombre">${a.nombre}</div>
+        <div class="ap-item-meta">${a.provName} · ${a.presLabel} → ${cantDisplay} a producción${a.responsable ? ' · ' + a.responsable : ''}</div>
+      </div>
+      <div class="ap-item-fecha">${fechaStr}</div>
+    </div>`;
+  }).join('');
+};
+
+window.setFiltroAp = (cat, btn) => {
+  const filters = document.getElementById('aperturasFilters');
+  if (filters) filters.dataset.filtro = cat;
+  renderAperturas();
+};
+
+// ── DEPÓSITO ──
+
+window.renderDeposito = () => {
+  const list = document.getElementById('depList');
+  const summaryBar = document.getElementById('depSummaryBar');
+  if (!list) return;
+
+  const items = Object.values(stockDeposito).filter(s => s.cantidad > 0);
+
+  if (!items.length) {
+    summaryBar.style.display = 'none';
+    list.innerHTML = `<div class="dep-empty"><div class="dep-empty-icon">🏭</div>No hay mercadería en depósito.<br>Marcá pedidos como recibidos para que aparezcan acá.</div>`;
+    return;
+  }
+
+  const totalItems = items.length;
+  const totalBultos = items.reduce((s, i) => s + i.cantidad, 0);
+
+  summaryBar.style.display = '';
+  summaryBar.innerHTML = `<div class="dep-summary-bar">
+    <div class="dep-summary-stat">
+      <span class="dep-summary-label">Productos distintos</span>
+      <span class="dep-summary-value">${totalItems}</span>
+    </div>
+    <div class="dep-summary-stat">
+      <span class="dep-summary-label">Bultos totales</span>
+      <span class="dep-summary-value">${totalBultos}</span>
+    </div>
+    <div style="font-size:32px">📦</div>
+  </div>`;
+
+  // Agrupar por categoría
+  const porCat = {};
+  items.forEach(s => {
+    const cat = s.cat || 'otros';
+    if (!porCat[cat]) porCat[cat] = [];
+    porCat[cat].push(s);
+  });
+
+  const catOrder = Object.keys(CATS);
+  const cats = [...new Set([...catOrder.filter(c => porCat[c]), ...Object.keys(porCat)])];
+
+  // Sección stock de producción
+  const prodItems = Object.values(stockProduccion).filter(s => s.cantidadBase > 0);
+  let prodHtml = '';
+  if (prodItems.length) {
+    prodHtml = `<div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+        🔓 En producción
+        <span style="font-size:11px;font-weight:400;color:var(--ink3)">${prodItems.length} insumo${prodItems.length!==1?'s':''} abiertos</span>
+      </div>
+      ${prodItems.map(s => {
+        const pcs = PROV_CAT_STYLES[s.cat] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
+        const cantDisplay = s.unidadBase === 'g' && s.cantidadBase >= 1000
+          ? `${(s.cantidadBase/1000).toFixed(2)} kg`
+          : s.unidadBase === 'ml' && s.cantidadBase >= 1000
+          ? `${(s.cantidadBase/1000).toFixed(2)} L`
+          : `${Math.round(s.cantidadBase)} ${s.unidadBase}`;
+        const bajo = s.cantidadBase < 500 && s.unidadBase === 'g' || s.cantidadBase < 500 && s.unidadBase === 'ml' || s.cantidadBase < 2 && s.unidadBase === 'u';
+        return `<div class="dep-item" style="border-top:3px solid ${pcs.color}">
+          <div class="card-cat-badge" style="background:${pcs.bg};color:${pcs.color}">${pcs.icon}</div>
+          <div style="flex:1;min-width:0">
+            <div class="dep-item-nombre">${s.nombre}</div>
+            <div class="dep-item-prov">${s.provName}</div>
+          </div>
+          <div class="dep-item-stock">
+            <span class="dep-item-cant ${bajo?'bajo':''}">${cantDisplay}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="height:1px;background:var(--border);margin-bottom:20px"></div>
+    <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">📦 Depósito</div>`;
+  }
+  list.innerHTML = prodHtml + cats.map(cat => {
+    const pcs = PROV_CAT_STYLES[cat] || { bg:'#F0EDE8', color:'#6B6760', icon:'📦' };
+    const catItems = porCat[cat] || [];
+    const n = catItems.length;
+    return `<div class="dep-cat-section" style="border-top:3px solid ${pcs.color}">
+      <div class="dep-cat-header" onclick="toggleDepCat(this)">
+        <div class="card-cat-badge" style="background:${pcs.bg};color:${pcs.color}">${pcs.icon}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:var(--ink)">${CATS[cat] || cat}</div>
+          <div style="font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace">${n} producto${n!==1?'s':''}</div>
+        </div>
+        <span class="card-toggle">▶</span>
+      </div>
+      <div class="dep-cat-body">
+        ${catItems.map(s => {
+          const pres = presentations[s.id] || presentations[key(s.provId, s.idx)];
+          const presLabel = pres ? `${pres.qty}${pres.unit}` : s.unidad || 'u';
+          const bajo = s.cantidad <= 1;
+          return `<div class="dep-item">
+            <div style="flex:1;min-width:0">
+              <div class="dep-item-nombre">${s.nombre}</div>
+              <div class="dep-item-prov">${s.provName}</div>
+            </div>
+            <span class="dep-item-pres">${presLabel}/bulto</span>
+            <div class="dep-item-stock">
+              <span class="dep-item-cant ${bajo?'bajo':''}">${s.cantidad}</span>
+              <span class="dep-item-unit">bulto${s.cantidad!==1?'s':''}</span>
+            </div>
+            ${s.cantidad <= 1 ? `<span class="dep-alerta">⚠ Último bulto</span>` : ''}
+            <button class="btn-abrir" onclick="abrirPaquete('${s.id}')" ${s.cantidad<=0?'disabled':''}>Abrir</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.toggleDepCat = (header) => {
+  const body = header.nextElementSibling;
+  const tog = header.querySelector('.card-toggle');
+  const open = body.classList.toggle('open');
+  header.classList.toggle('open', open);
+  tog.classList.toggle('open', open);
+};
+
+const UNIT_TO_BASE = { kg:1000, g:1, L:1000, ml:1, u:1 };
+const BASE_UNIT = { kg:'g', g:'g', L:'ml', ml:'ml', u:'u' };
+
+window.abrirPaquete = async (k) => {
+  const s = stockDeposito[k];
+  if (!s || s.cantidad <= 0) return;
+  const pres = presentations[k];
+  const presLabel = pres ? `${pres.qty}${pres.unit}` : '1 bulto';
+  if (!confirm(`¿Abrís 1 bulto de ${s.nombre} (${presLabel})?\nPasa al stock de producción.`)) return;
+  try {
+    const {increment: fsIncrement} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    // Descontar del depósito
+    await setDoc(doc(db,'stock',k), { cantidad: fsIncrement(-1) }, {merge:true});
+    // Sumar al stock de producción en unidades base (g / ml / u)
+    const presQty = pres ? parseFloat(pres.qty) || 1 : 1;
+    const presUnit = pres?.unit || 'u';
+    const baseUnit = BASE_UNIT[presUnit] || 'u';
+    const cantBase = presQty * (UNIT_TO_BASE[presUnit] || 1);
+    await setDoc(doc(db,'stockProduccion',k), {
+      provId: s.provId, idx: s.idx,
+      nombre: s.nombre, provName: s.provName, cat: s.cat || 'otros',
+      cantidadBase: fsIncrement(cantBase),
+      unidadBase: baseUnit,
+    }, {merge:true});
+    // Registrar apertura
+    await addDoc(collection(db,'aperturas'), {
+      key: k, nombre: s.nombre, provName: s.provName, cat: s.cat || 'otros',
+      presLabel, cantBase, unidadBase: baseUnit,
+      fecha: serverTimestamp(),
+      responsable: null,
+    });
+    showToast(`✓ ${presLabel} de ${s.nombre} pasó a producción`);
+  } catch(e) { showToast('❌ Error al actualizar el stock'); console.error(e); }
 };
 
 window.eliminarPendiente = async (id) => {
@@ -4337,6 +5415,7 @@ document.addEventListener('keydown', (e) => {
     if (document.getElementById('statsModalOverlay')?.classList.contains('open')) cerrarStatsModal();
     if (document.getElementById('ventasPreviewOverlay')?.classList.contains('open')) { document.getElementById('ventasPreviewOverlay').classList.remove('open'); document.getElementById('ventasFileInput').value=''; }
     if (document.getElementById('mappingModalOverlay')?.classList.contains('open')) document.getElementById('mappingModalOverlay').classList.remove('open');
+    if (document.getElementById('recetaWizardOverlay')?.classList.contains('open')) cerrarWizardRecetas();
   }
 });
 </script>
